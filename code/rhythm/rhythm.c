@@ -2,6 +2,8 @@
 #include "../../core.h"
 #include "../../minigame.h"
 
+#include "simfile.h"
+
 #include <string.h>
 
 const MinigameDef minigame_def = {
@@ -14,7 +16,7 @@ const MinigameDef minigame_def = {
 wav64_t junkie_loop;
 sprite_t* a_button;
 sprite_t* b_button;
-sprite_t* indicator;
+sprite_t* indicator_sprite;
 
 typedef struct {
     float cx, cy;
@@ -22,9 +24,15 @@ typedef struct {
     sprite_t* button;
 } Note;
 
-#define NOTE_COUNT 8
-static Note notes[NOTE_COUNT];
+typedef struct {
+    Note* note;
+    float time_remaining;
+} Indicator;
 
+#define INDICATOR_LIFETIME 0.3f
+
+#define INDICATOR_COUNT 2
+#define NOTE_COUNT 8
 
 static void note_init(Note* note, float cx, float cy, sprite_t* button) {
     note->cx = cx;
@@ -35,41 +43,34 @@ static void note_init(Note* note, float cx, float cy, sprite_t* button) {
 
 #define GAME_BACKGROUND     0x000000FF
 
-static float note_times[NOTE_COUNT] = {
-    0.0f, 0.3f, 0.57f,
-    1.103f, 1.38f, 1.657f,
-    2.188, 2.460
+#define SIMFILE_TOTAL_TIME 2.7f
+#define SIMFILE_STARTING_TIME_OFFSET (-INDICATOR_LIFETIME)
+#define SIMFILE_EVENT_COUNT NOTE_COUNT
+static SimfileEvent simfile_events[SIMFILE_EVENT_COUNT] = {
+    {0.0f, 0, SIMFILE_EVENT_TAP, 0},
+    {0.3f, 0, SIMFILE_EVENT_TAP, 0},
+    {0.57f, 0, SIMFILE_EVENT_TAP, 1},
+
+    {1.103f, 0, SIMFILE_EVENT_TAP, 0},
+    {1.38f, 0, SIMFILE_EVENT_TAP, 0},
+    {1.70f, 0, SIMFILE_EVENT_TAP, 1},
+
+    {2.188f, 0, SIMFILE_EVENT_TAP, 0},
+    {2.460, 0, SIMFILE_EVENT_TAP, 1}
 };
 
-static const float indicator_time = 0.3f;
-static const float song_offset_time = -0.3f;
+static Indicator indicators[INDICATOR_COUNT];
+static Note notes[NOTE_COUNT];
+static Simfile simfile;
+static SimfileContext context;
+static size_t next_note = 0;
 
-float song_time = song_offset_time;
-size_t active_note = 0;
+static void draw_notes();
+static void draw_indicators();
+static void show_next_indicator(const SimfileEvent* event, void* arg);
 
-static void draw_notes() {
-    rdpq_blitparms_t params;
-    memset(&params, 0, sizeof(rdpq_blitparms_t));
-
-    for (size_t i = 0; i < NOTE_COUNT; i++) {
-        Note* note = &notes[i];
-
-        if (note->indicator_active) {
-            float time_remaining_to_note = note_times[active_note] - song_time;           
-            float indicator_scale = 0.5f + ((time_remaining_to_note / indicator_time)* 0.5f) ;
-
-            float indicator_x = note->cx - (indicator->width / 2) * indicator_scale;
-            float indicator_y = note->cy - (indicator->height / 2) * indicator_scale;
-
-            params.scale_x = indicator_scale;
-            params.scale_y = indicator_scale;
-
-            rdpq_sprite_blit(indicator, indicator_x, indicator_y, &params);
-        }
-
-        rdpq_sprite_blit(note->button, note->cx - note->button->width / 2, note->cy - note->button->height /2 , NULL);
-    }
-}
+static void update_indicators(float deltatime);
+static void draw_indicators();
 
 /*==============================
     minigame_init
@@ -81,9 +82,9 @@ void minigame_init()
     wav64_open(&junkie_loop, "rom:/rhythm/junkie_loop.wav64");
     a_button = sprite_load("rom:/core/AButton.sprite");
     b_button = sprite_load("rom:/core/BButton.sprite");
-    indicator = sprite_load("rom:/rhythm/indicator.sprite");
-    //wav64_play(&junkie_loop, 1);
+    indicator_sprite = sprite_load("rom:/rhythm/indicator.sprite");
 
+    memset(indicators, 0, sizeof(indicators));
 
     note_init(&notes[0], 40.0f, 40.0f, a_button);
     note_init(&notes[1], 80.0f, 40.0f, a_button);
@@ -96,7 +97,9 @@ void minigame_init()
     note_init(&notes[6], 80.0f, 120.0f, a_button);
     note_init(&notes[7], 120.0f, 120.0f, b_button);
 
-
+    simfile_init_debug(&simfile, SIMFILE_TOTAL_TIME, SIMFILE_STARTING_TIME_OFFSET, SIMFILE_EVENT_COUNT, simfile_events);
+    simfile_context_init(&context, &simfile, INDICATOR_LIFETIME);
+    simfile_context_push_callback(&context, show_next_indicator, NULL);
 }
 
 /*==============================
@@ -108,28 +111,20 @@ void minigame_init()
 ==============================*/
 void minigame_fixedloop(float deltatime)
 {
-    song_time += deltatime;
+    update_indicators(deltatime);
+    simfile_context_update(&context, deltatime);
 
-    // do we need to show the indicator for the next note?
-    if (song_time + indicator_time >= note_times[active_note]) {
-        if (!mixer_ch_playing(1)) {
-            wav64_play(&junkie_loop, 1);
-        }
-
-        notes[active_note].indicator_active = 1;
+    // if the song is finished restart it
+    if (simfile_context_finished(&context)) {
+        memset(indicators, 0, sizeof(indicators));
+        mixer_ch_stop(1);
+        next_note = 0;
+        simfile_context_reset(&context);
     }
 
-    // did we reach the note?
-    if (song_time >= note_times[active_note]) {
-        notes[active_note].indicator_active = 0;
-        active_note += 1;
-
-        // reached end of the loop
-        if (active_note >= NOTE_COUNT) {
-            active_note = 0;
-            song_time = song_offset_time;
-            mixer_ch_stop(1);
-        }
+    // temporary fix
+    if (context.current_time > 0 && !mixer_ch_playing(1)) {
+        wav64_play(&junkie_loop, 1);
     }
 }
 
@@ -146,6 +141,7 @@ void minigame_loop(float deltatime)
     rdpq_set_mode_standard();
     rdpq_mode_alphacompare(1);
     
+    draw_indicators();
     draw_notes();
 
     rdpq_detach_show();
@@ -160,4 +156,65 @@ void minigame_cleanup()
     wav64_close(&junkie_loop);
     sprite_free(a_button);
     sprite_free(b_button);
+}
+
+static void show_next_indicator(const SimfileEvent* event, void* arg) {
+    Note* note = &notes[next_note++];
+    // get next indicator
+    Indicator* indicator = NULL;
+    for (size_t i = 0; i < INDICATOR_COUNT; i++) {
+        if (indicators[i].time_remaining <= 0) {
+            indicator = &indicators[i];
+        }
+    }
+
+    if (!indicator) {
+        return; // should not happen
+    }
+
+    indicator->note = note;
+    indicator->time_remaining = event->time - context.current_time;
+}
+
+void update_indicators(float deltatime) {
+    for (size_t i = 0; i < INDICATOR_COUNT; i++) {
+        Indicator* indicator = indicators + i;
+
+        if (indicator->time_remaining <= 0) {
+            continue;
+        }
+        
+        indicator->time_remaining = indicator->time_remaining - deltatime;
+    }
+}
+
+void draw_indicators() {
+    rdpq_blitparms_t params;
+    memset(&params, 0, sizeof(rdpq_blitparms_t));
+
+    for (size_t i = 0; i < INDICATOR_COUNT; i++) {
+        Indicator* indicator = indicators + i;
+
+        if (indicator->time_remaining <= 0) {
+            continue;
+        }
+
+        float indicator_scale = 0.5f + ((indicator->time_remaining / INDICATOR_LIFETIME)* 0.5f) ;
+
+        float indicator_x = indicator->note->cx - (indicator_sprite->width / 2) * indicator_scale;
+        float indicator_y = indicator->note->cy - (indicator_sprite->height / 2) * indicator_scale;
+
+        params.scale_x = indicator_scale;
+        params.scale_y = indicator_scale;
+
+        rdpq_sprite_blit(indicator_sprite, indicator_x, indicator_y, &params);
+    }
+}
+
+static void draw_notes() {
+    for (size_t i = 0; i < NOTE_COUNT; i++) {
+        Note* note = &notes[i];
+
+        rdpq_sprite_blit(note->button, note->cx - note->button->width / 2, note->cy - note->button->height /2 , NULL);
+    }
 }
