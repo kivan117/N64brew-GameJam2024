@@ -2,7 +2,8 @@
 #include "../../core.h"
 #include "../../minigame.h"
 
-#include "simfile.h"
+#include "simfile/simfile.h"
+#include "simfile/simfile_context.h"
 
 #include <string.h>
 
