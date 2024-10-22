@@ -3,6 +3,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define SIMFILE_MAX_COLUMN_COUNT 8
+
 typedef enum {
     SIMFILE_EVENT_NONE,
     SIMFILE_EVENT_TAP,
