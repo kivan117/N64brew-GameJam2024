@@ -19,13 +19,18 @@ typedef struct {
 } SimfileEvent;
 
 typedef struct {
+    /** The total time of the simfile. */
     float total_time;
+
+    /** defines an offset to the current time of a context that is evaluating this simfile. */
     float starting_time_offset;
     uint32_t event_count;
     SimfileEvent* events;
 } Simfile;
 
 void simfile_init_debug(Simfile* simfile, float total_time, float starting_time_offset, uint32_t event_count, SimfileEvent* events);
+int simfile_open(Simfile* simfile, const char* path);
+void simfile_uninit(Simfile* simfile);
 
 typedef void(*SimfileEventCallback)(const SimfileEvent* event, void* arg);
 #define SIMFILE_CONTEXT_MAX_CALLBACKS_COUNT 4

@@ -43,22 +43,6 @@ static void note_init(Note* note, float cx, float cy, sprite_t* button) {
 
 #define GAME_BACKGROUND     0x000000FF
 
-#define SIMFILE_TOTAL_TIME 2.7f
-#define SIMFILE_STARTING_TIME_OFFSET (-INDICATOR_LIFETIME)
-#define SIMFILE_EVENT_COUNT NOTE_COUNT
-static SimfileEvent simfile_events[SIMFILE_EVENT_COUNT] = {
-    {0.0f, 0, SIMFILE_EVENT_TAP, 0},
-    {0.3f, 0, SIMFILE_EVENT_TAP, 0},
-    {0.57f, 0, SIMFILE_EVENT_TAP, 1},
-
-    {1.103f, 0, SIMFILE_EVENT_TAP, 0},
-    {1.38f, 0, SIMFILE_EVENT_TAP, 0},
-    {1.70f, 0, SIMFILE_EVENT_TAP, 1},
-
-    {2.188f, 0, SIMFILE_EVENT_TAP, 0},
-    {2.460, 0, SIMFILE_EVENT_TAP, 1}
-};
-
 static Indicator indicators[INDICATOR_COUNT];
 static Note notes[NOTE_COUNT];
 static Simfile simfile;
@@ -79,7 +63,7 @@ static void draw_indicators();
 void minigame_init()
 {
     display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, FILTERS_RESAMPLE);
-    wav64_open(&junkie_loop, "rom:/rhythm/junkie_loop.wav64");
+    wav64_open(&junkie_loop, "rom:/rhythm/tabloid_junkie.wav64");
     a_button = sprite_load("rom:/core/AButton.sprite");
     b_button = sprite_load("rom:/core/BButton.sprite");
     indicator_sprite = sprite_load("rom:/rhythm/indicator.sprite");
@@ -97,7 +81,7 @@ void minigame_init()
     note_init(&notes[6], 80.0f, 120.0f, a_button);
     note_init(&notes[7], 120.0f, 120.0f, b_button);
 
-    simfile_init_debug(&simfile, SIMFILE_TOTAL_TIME, SIMFILE_STARTING_TIME_OFFSET, SIMFILE_EVENT_COUNT, simfile_events);
+    simfile_open(&simfile, "rom:/rhythm/tabloid_junkie.csm");
     simfile_context_init(&context, &simfile, INDICATOR_LIFETIME);
     simfile_context_push_callback(&context, show_next_indicator, NULL);
 }
