@@ -10,6 +10,7 @@ typedef struct {
     void* arg;
 } SimfileEventCallbackEntry;
 
+/** TODO: THis should be renamed playback context */
 typedef struct {
     Simfile* simfile;
     float current_time;

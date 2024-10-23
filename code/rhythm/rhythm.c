@@ -18,8 +18,6 @@ const MinigameDef minigame_def = {
     .instructions = "Press A to win."
 };
 
-wav64_t junkie_loop;
-
 sprite_t* indicator_sprite;
 rdpq_font_t *font;
 
@@ -28,20 +26,6 @@ typedef struct {
     float time_remaining;
 } Indicator;
 
-#define BUTTON_OVERLAY_ITEM_COUNT 8
-ButtonOverlayItem overlay_items[BUTTON_OVERLAY_ITEM_COUNT] = {
-    {40.0f, 40.0f, (sprite_t*)'a'},
-    {80.0f, 40.0f, (sprite_t*)'a'},
-    {120.0f, 40.0f, (sprite_t*)'b'},
-
-    {60.0f, 80.0f, (sprite_t*)'a'},
-    {100.0f, 80.0f, (sprite_t*)'a'},
-    {140.0f, 80.0f, (sprite_t*)'b'},
-
-    {80.0f, 120.0f, (sprite_t*)'a'},
-    {100.0f, 120.0f, (sprite_t*)'b'},
-};
-
 #define GAME_BACKGROUND     0x000000FF
 static uint32_t background_color = GAME_BACKGROUND;
 
@@ -49,6 +33,7 @@ static uint32_t background_color = GAME_BACKGROUND;
 #define INDICATOR_COUNT 2
 static Indicator indicators[INDICATOR_COUNT];
 
+wav64_t audio_file;
 static Simfile simfile;
 static SimfileContext context;
 static SimfileInputTracker tracker;
@@ -65,6 +50,21 @@ static void draw_indicators();
 static int player_controller_get_button_pressed(int button, void* arg);
 static void process_input();
 
+
+typedef struct {
+    const char* wav_file;
+    const char* simfile;
+    const char* layout;
+} Loop;
+
+#define LOOP_COUNT 2
+static const Loop loops[LOOP_COUNT] = {
+    {"rom:/rhythm/tabloid_junkie.wav64", "rom:/rhythm/tabloid_junkie.csm", "rom:/rhythm/tabloid_junkie_layout.layout"}
+};
+
+static int current_loop = -1;
+static void load_loop(int index);
+
 /*==============================
     minigame_init
     The minigame initialization function
@@ -72,7 +72,8 @@ static void process_input();
 void minigame_init()
 {
     display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, FILTERS_RESAMPLE);
-    wav64_open(&junkie_loop, "rom:/rhythm/tabloid_junkie.wav64");
+    simfile_init(&simfile);
+    button_overlay_init(&button_overlay);
 
     indicator_sprite = sprite_load("rom:/rhythm/indicator.sprite");
     font = rdpq_font_load_builtin(FONT_BUILTIN_DEBUG_VAR);
@@ -80,19 +81,8 @@ void minigame_init()
     #define TEXT_COLOR          0x6CBB3CFF
     rdpq_font_style(font, 0, &(rdpq_fontstyle_t){.color = color_from_packed32(TEXT_COLOR) });
 
-    memset(indicators, 0, sizeof(indicators));
+    load_loop(0);
 
-    simfile_open(&simfile, "rom:/rhythm/tabloid_junkie.csm");
-    simfile_context_init(&context, &simfile, INDICATOR_LIFETIME);
-    simfile_context_push_callback(&context, show_next_indicator, NULL);
-
-    SimfileInputTrackerInterface input_interface = {player_controller_get_button_pressed, 0};
-    simfile_input_tracker_init(&tracker, &context, &input_interface);
-
-    button_overlay_init(&button_overlay);
-    //button_overlay_load_debug(&button_overlay, overlay_items, BUTTON_OVERLAY_ITEM_COUNT);
-    button_overlay_open_f(&button_overlay, "rom:/rhythm/tabloid_junkie_layout.layout");
-    note_results_init(&note_results);
 }
 
 /*==============================
@@ -138,7 +128,7 @@ void minigame_loop(float deltatime)
 
     // temporary fix
     if (!simfile_context_finished(&context) && context.current_time > 0 && !mixer_ch_playing(1)) {
-        wav64_play(&junkie_loop, 1);
+        wav64_play(&audio_file, 1);
     }
     
     draw_indicators();
@@ -157,13 +147,34 @@ void minigame_cleanup()
     button_overlay_uninit(&button_overlay);
     simfile_uninit(&simfile);
 
-    wav64_close(&junkie_loop);
+    wav64_close(&audio_file);
     sprite_free(indicator_sprite);
     rdpq_text_unregister_font(1);
 }
 
+void load_loop(int index) {
+    if (current_loop >= 0) {
+        wav64_close(&audio_file);
+    }
+
+    const Loop* loop = &loops[index];
+
+    memset(indicators, 0, sizeof(indicators));
+    wav64_open(&audio_file, loop->wav_file);
+    simfile_open(&simfile, loop->simfile);
+    simfile_context_init(&context, &simfile, INDICATOR_LIFETIME);
+    simfile_context_push_callback(&context, show_next_indicator, NULL);
+
+    SimfileInputTrackerInterface input_interface = {player_controller_get_button_pressed, 0};
+    simfile_input_tracker_init(&tracker, &context, &input_interface);
+    button_overlay_open_f(&button_overlay, loop->layout);
+    note_results_init(&note_results);
+    
+}
+
 static void show_next_indicator(const SimfileEvent* event, void* arg) {
     ButtonOverlayItem* note = &button_overlay.overlay_items[next_note++];
+    
     // get next indicator
     Indicator* indicator = NULL;
     for (size_t i = 0; i < INDICATOR_COUNT; i++) {
@@ -178,6 +189,7 @@ static void show_next_indicator(const SimfileEvent* event, void* arg) {
 
     indicator->note = note;
     indicator->time_remaining = event->time - context.current_time;
+    debugf("show_next_indicator: %f, %f (%f)\n", note->cx, note->cy, indicator->time_remaining);
 
     simfile_input_tracker_enqueue(&tracker, event);
 }

@@ -6,6 +6,10 @@
 
 #include <libdragon.h>
 
+void simfile_init(Simfile* simfile) {
+    memset(simfile, 0, sizeof(Simfile));
+}
+
 void simfile_init_debug(Simfile* simfile, float total_time, float starting_time_offset, uint32_t event_count, SimfileEvent* events) {
     simfile->total_time = total_time;
     simfile->starting_time_offset = starting_time_offset;
@@ -16,6 +20,8 @@ void simfile_init_debug(Simfile* simfile, float total_time, float starting_time_
 #define SIMFILE_INFO_SIZE 12
 
 int simfile_open(Simfile* simfile, const char* path) {
+    simfile_uninit(simfile);
+
     FILE* f = fopen(path, "rb");
     if (!f) {
         simfile->event_count = 0;

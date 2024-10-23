@@ -6,12 +6,16 @@
 
 typedef struct {
     float cx, cy;
-    sprite_t* button;
+    sprite_t* button1;
+    sprite_t* button2;
 } ButtonOverlayItem;
 
 typedef struct {
     sprite_t* a_button;
     sprite_t* b_button;
+    sprite_t* l_button;
+    sprite_t* r_button;
+    sprite_t* z_button;
     ButtonOverlayItem* overlay_items;
     uint32_t overlay_item_count;
 } ButtonOverlay;

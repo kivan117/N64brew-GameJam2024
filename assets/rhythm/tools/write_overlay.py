@@ -21,6 +21,8 @@ with open(output_path, "wb") as output_file:
 	output_file.write(header_data)
 
 	for overlay_item in overlay_file:
-		item_data = struct.pack('{}ffI'.format(endian), overlay_item["x"], overlay_item["y"], ord(overlay_item["texture"][0]))
+		tex_a = ord(overlay_item["texture"][0])
+		tex_b = ord(overlay_item["texture"][1]) if len(overlay_item["texture"]) == 2 else 0
+		item_data = struct.pack('{}ffII'.format(endian), overlay_item["x"], overlay_item["y"], tex_a, tex_b)
 		output_file.write(item_data)
 

@@ -30,6 +30,7 @@ typedef struct {
     SimfileEvent* events;
 } Simfile;
 
+void simfile_init(Simfile* simfile);
 void simfile_init_debug(Simfile* simfile, float total_time, float starting_time_offset, uint32_t event_count, SimfileEvent* events);
 int simfile_open(Simfile* simfile, const char* path);
 void simfile_uninit(Simfile* simfile);

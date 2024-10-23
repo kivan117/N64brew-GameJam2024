@@ -8,6 +8,9 @@ void button_overlay_init(ButtonOverlay* overlay) {
     overlay->overlay_items = NULL;
     overlay->a_button = sprite_load("rom:/core/AButton.sprite");
     overlay->b_button = sprite_load("rom:/core/BButton.sprite");
+    overlay->l_button = sprite_load("rom:/core/LTrigger.sprite");
+    overlay->r_button = sprite_load("rom:/core/RTrigger.sprite");
+    overlay->z_button = sprite_load("rom:/core/ZTrigger.sprite");
 }
 
 static void button_overlay_close(ButtonOverlay* overlay) {
@@ -26,14 +29,28 @@ static void fixup_overlay_item_textures(ButtonOverlay* overlay) {
     for (uint32_t i = 0; i < overlay->overlay_item_count; i++) {
         ButtonOverlayItem* item = &overlay->overlay_items[i];
 
-        debugf("%lu: x: %f y: %f (%u)\n", i, item->cx, item->cy, (uintptr_t)item->button);
+        debugf("%lu: x: %f y: %f (%u)(%u)\n", i, item->cx, item->cy, (uintptr_t)item->button1, (uintptr_t)item->button2);
 
-        switch ((uintptr_t)item->button)
+        switch ((uintptr_t)item->button1)
         {
-            case 'a': item->button = overlay->a_button; break;
-            case 'b': item->button = overlay->b_button; break;
+            case 'a': item->button1 = overlay->a_button; break;
+            case 'b': item->button1 = overlay->b_button; break;
+            case 'l': item->button1 = overlay->l_button; break;
+            case 'r': item->button1 = overlay->r_button; break;
+            case 'z': item->button1 = overlay->z_button; break;
             
-            default: item->button = NULL;
+            default: item->button1 = NULL;
+        }
+
+        switch ((uintptr_t)item->button2)
+        {
+            case 'a': item->button2 = overlay->a_button; break;
+            case 'b': item->button2 = overlay->b_button; break;
+            case 'l': item->button2 = overlay->l_button; break;
+            case 'r': item->button2 = overlay->r_button; break;
+            case 'z': item->button2 = overlay->z_button; break;
+            
+            default: item->button2 = NULL;
         }
     }
 }
@@ -69,6 +86,6 @@ void button_overlay_draw(ButtonOverlay* overlay) {
     for (size_t i = 0; i < overlay->overlay_item_count; i++) {
         ButtonOverlayItem* overlay_item = &overlay->overlay_items[i];
 
-        rdpq_sprite_blit(overlay_item->button, overlay_item->cx - overlay_item->button->width / 2, overlay_item->cy - overlay_item->button->height /2 , NULL);
+        rdpq_sprite_blit(overlay_item->button1, overlay_item->cx - overlay_item->button1->width / 2, overlay_item->cy - overlay_item->button1->height /2 , NULL);
     }
 }
