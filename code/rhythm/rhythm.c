@@ -3,6 +3,7 @@
 #include "../../minigame.h"
 
 #include "note_results.h"
+#include "button_overlay.h"
 
 #include "simfile/simfile.h"
 #include "simfile/simfile_context.h"
@@ -18,46 +19,43 @@ const MinigameDef minigame_def = {
 };
 
 wav64_t junkie_loop;
-sprite_t* a_button;
-sprite_t* b_button;
+
 sprite_t* indicator_sprite;
 rdpq_font_t *font;
 
 typedef struct {
-    float cx, cy;
-    int indicator_active;
-    sprite_t* button;
-} Note;
-
-typedef struct {
-    Note* note;
+    ButtonOverlayItem* note;
     float time_remaining;
 } Indicator;
 
-#define INDICATOR_LIFETIME 0.3f
+#define BUTTON_OVERLAY_ITEM_COUNT 8
+ButtonOverlayItem overlay_items[BUTTON_OVERLAY_ITEM_COUNT] = {
+    {40.0f, 40.0f, (sprite_t*)'a'},
+    {80.0f, 40.0f, (sprite_t*)'a'},
+    {120.0f, 40.0f, (sprite_t*)'b'},
 
-#define INDICATOR_COUNT 2
-#define NOTE_COUNT 8
+    {60.0f, 80.0f, (sprite_t*)'a'},
+    {100.0f, 80.0f, (sprite_t*)'a'},
+    {140.0f, 80.0f, (sprite_t*)'b'},
 
-static void note_init(Note* note, float cx, float cy, sprite_t* button) {
-    note->cx = cx;
-    note->cy = cy;
-    note->indicator_active = 0;
-    note->button = button;
-}
+    {80.0f, 120.0f, (sprite_t*)'a'},
+    {100.0f, 120.0f, (sprite_t*)'b'},
+};
 
 #define GAME_BACKGROUND     0x000000FF
 static uint32_t background_color = GAME_BACKGROUND;
 
+#define INDICATOR_LIFETIME 0.3f
+#define INDICATOR_COUNT 2
 static Indicator indicators[INDICATOR_COUNT];
-static Note notes[NOTE_COUNT];
+
 static Simfile simfile;
 static SimfileContext context;
 static SimfileInputTracker tracker;
 static NoteResults note_results;
+static ButtonOverlay button_overlay;
 static size_t next_note = 0;
 
-static void draw_notes();
 static void draw_indicators();
 static void show_next_indicator(const SimfileEvent* event, void* arg);
 
@@ -75,8 +73,7 @@ void minigame_init()
 {
     display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, FILTERS_RESAMPLE);
     wav64_open(&junkie_loop, "rom:/rhythm/tabloid_junkie.wav64");
-    a_button = sprite_load("rom:/core/AButton.sprite");
-    b_button = sprite_load("rom:/core/BButton.sprite");
+
     indicator_sprite = sprite_load("rom:/rhythm/indicator.sprite");
     font = rdpq_font_load_builtin(FONT_BUILTIN_DEBUG_VAR);
     rdpq_text_register_font(1, font);
@@ -85,17 +82,6 @@ void minigame_init()
 
     memset(indicators, 0, sizeof(indicators));
 
-    note_init(&notes[0], 40.0f, 40.0f, a_button);
-    note_init(&notes[1], 80.0f, 40.0f, a_button);
-    note_init(&notes[2], 120.0f, 40.0f, b_button);
-
-    note_init(&notes[3], 60.0f, 80.0f, a_button);
-    note_init(&notes[4], 100.0f, 80.0f, a_button);
-    note_init(&notes[5], 140.0f, 80.0f, b_button);
-
-    note_init(&notes[6], 80.0f, 120.0f, a_button);
-    note_init(&notes[7], 120.0f, 120.0f, b_button);
-
     simfile_open(&simfile, "rom:/rhythm/tabloid_junkie.csm");
     simfile_context_init(&context, &simfile, INDICATOR_LIFETIME);
     simfile_context_push_callback(&context, show_next_indicator, NULL);
@@ -103,6 +89,9 @@ void minigame_init()
     SimfileInputTrackerInterface input_interface = {player_controller_get_button_pressed, 0};
     simfile_input_tracker_init(&tracker, &context, &input_interface);
 
+    button_overlay_init(&button_overlay);
+    //button_overlay_load_debug(&button_overlay, overlay_items, BUTTON_OVERLAY_ITEM_COUNT);
+    button_overlay_open_f(&button_overlay, "rom:/rhythm/tabloid_junkie_layout.layout");
     note_results_init(&note_results);
 }
 
@@ -153,7 +142,7 @@ void minigame_loop(float deltatime)
     }
     
     draw_indicators();
-    draw_notes();
+    button_overlay_draw(&button_overlay);
     note_results_draw(&note_results, font);
 
     rdpq_detach_show();
@@ -165,15 +154,16 @@ void minigame_loop(float deltatime)
 ==============================*/
 void minigame_cleanup()
 {
+    button_overlay_uninit(&button_overlay);
+    simfile_uninit(&simfile);
+
     wav64_close(&junkie_loop);
-    sprite_free(a_button);
-    sprite_free(b_button);
     sprite_free(indicator_sprite);
     rdpq_text_unregister_font(1);
 }
 
 static void show_next_indicator(const SimfileEvent* event, void* arg) {
-    Note* note = &notes[next_note++];
+    ButtonOverlayItem* note = &button_overlay.overlay_items[next_note++];
     // get next indicator
     Indicator* indicator = NULL;
     for (size_t i = 0; i < INDICATOR_COUNT; i++) {
@@ -227,14 +217,6 @@ void draw_indicators() {
     }
 }
 
-static void draw_notes() {
-    for (size_t i = 0; i < NOTE_COUNT; i++) {
-        Note* note = &notes[i];
-
-        rdpq_sprite_blit(note->button, note->cx - note->button->width / 2, note->cy - note->button->height /2 , NULL);
-    }
-}
-
 int player_controller_get_button_pressed(int button, void* arg) {
     uint32_t port = (uint32_t)arg;
     joypad_buttons_t btn = joypad_get_buttons_pressed(port);
@@ -246,7 +228,7 @@ void process_input() {
     SimfileInputTrackerResult result = simfile_input_tracker_update(&tracker);
 
     if (result.type != INPUT_TRACKER_RESULT_NONE) {
-        Note* note = &notes[result.event_index];
-        note_results_push(&note_results, note->cx, note->cy, result.type);
+        ButtonOverlayItem* overlay_item = &button_overlay.overlay_items[result.event_index];
+        note_results_push(&note_results, overlay_item->cx, overlay_item->cy, result.type);
     }
 }
