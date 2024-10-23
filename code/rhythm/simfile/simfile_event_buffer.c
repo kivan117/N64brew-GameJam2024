@@ -26,6 +26,19 @@ const SimfileEvent* simfile_event_buffer_front(SimfileEventBuffer* event_buffer)
     return event_buffer->count > 0 ? event_buffer->events[event_buffer->head] : NULL;
 }
 
+const SimfileEvent* simfile_event_buffer_get_at_index(SimfileEventBuffer* event_buffer, uint32_t index) {
+    if (event_buffer->count <= index) {
+        return NULL;
+    }
+
+    index += event_buffer->head;
+    if (index >= SIMFILE_EVENT_BUFFER_SIZE) {
+        index -= SIMFILE_EVENT_BUFFER_SIZE;
+    }
+
+    return event_buffer->events[index];
+}
+
 void simfile_event_buffer_pop_front(SimfileEventBuffer* event_buffer) {
     if (event_buffer->count == 0) {
         return;

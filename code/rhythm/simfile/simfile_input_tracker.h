@@ -33,7 +33,19 @@ typedef enum {
 
     INPUT_TRACKER_RESULT_NONE,
     INPUT_TRACKER_RESULT_MISS,
+} SimfileInputTrackerResultType;
+
+typedef struct {
+    uint32_t event_index;
+    SimfileInputTrackerResultType type;
 } SimfileInputTrackerResult;
+
+typedef int(*InputTrackerPlayerInterfaceButtonFunc)(int button, void* arg);
+
+typedef struct {
+    InputTrackerPlayerInterfaceButtonFunc button_was_pressed;
+    void* callback_arg;
+} SimfileInputTrackerInterface;
 
 typedef struct {
     const SimfileContext* context;
@@ -41,11 +53,18 @@ typedef struct {
     SimfileInputTrackerButton button_to_column_map[SIMFILE_MAX_COLUMN_COUNT];
     uint32_t column_count;
     SimfileEventBuffer event_buffer;
-    uint32_t controller_port;
+
+    /** Interface for interacting with the player that is controlling this tracker */
+    SimfileInputTrackerInterface input_interface;
+
+    /** The index of the current event being considered */
+    uint32_t event_index;
 } SimfileInputTracker;
 
-void simfile_input_tracker_init(SimfileInputTracker* tracker, const SimfileContext* context, uint32_t controller_port);
+void simfile_input_tracker_init(SimfileInputTracker* tracker, const SimfileContext* context, const SimfileInputTrackerInterface* input_interface);
 
 /** Ensure that this method is called _after_ simfile_context_update */
 SimfileInputTrackerResult simfile_input_tracker_update(SimfileInputTracker* tracker);
 void simfile_input_tracker_enqueue(SimfileInputTracker* tracker, const SimfileEvent* event);
+
+void simfile_input_tracker_reset(SimfileInputTracker* tracker);

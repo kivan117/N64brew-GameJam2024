@@ -14,4 +14,5 @@ typedef struct {
 void simfile_ring_buffer_init(SimfileEventBuffer* event_buffer);
 int simfile_event_buffer_push_back(SimfileEventBuffer* event_buffer, const SimfileEvent* event);
 const SimfileEvent* simfile_event_buffer_front(SimfileEventBuffer* event_buffer);
+const SimfileEvent* simfile_event_buffer_get_at_index(SimfileEventBuffer* event_buffer, uint32_t index);
 void simfile_event_buffer_pop_front(SimfileEventBuffer* event_buffer);
