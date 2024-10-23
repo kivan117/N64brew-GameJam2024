@@ -36,12 +36,19 @@ void simfile_input_tracker_reset(SimfileInputTracker* tracker) {
 }
 
 void simfile_input_tracker_enqueue(SimfileInputTracker* tracker, const SimfileEvent* event) {
+    if (tracker->event_buffer.count == 0) {
+        tracker->event_column_mask = ~event->columns;
+    }
+
     simfile_event_buffer_push_back(&tracker->event_buffer, event);
 }
 
 static void simfile_input_current_event_complete(SimfileInputTracker* tracker) {
     simfile_event_buffer_pop_front(&tracker->event_buffer);
     tracker->event_index += 1;
+
+    const SimfileEvent* now_current_event = simfile_event_buffer_front(&tracker->event_buffer);
+    tracker->event_column_mask = (now_current_event != NULL) ? ~now_current_event->columns : 0;
 }
 
 static SimfileInputTrackerResultType simfile_input_tracker_update_tap_event(SimfileInputTracker* tracker, const SimfileEvent* current_event, int column) {
@@ -50,8 +57,14 @@ static SimfileInputTrackerResultType simfile_input_tracker_update_tap_event(Simf
         float event_min = current_event->time - tracker->time_windows[r];
         float event_max = current_event->time + tracker->time_windows[r];
         if ( tracker->context->current_time >= event_min && tracker->context->current_time <= event_max) {
-            simfile_input_current_event_complete(tracker);
-            return (SimfileInputTrackerResultType)r;
+            // flip the bit for this column
+            tracker->event_column_mask |= (1 << column);
+
+            // did we complete the event?
+            if (tracker->event_column_mask == 0xFF) {
+                simfile_input_current_event_complete(tracker);
+                return (SimfileInputTrackerResultType)r;
+            }
         }
     }
 
@@ -63,6 +76,12 @@ SimfileInputTrackerResult simfile_input_tracker_update(SimfileInputTracker* trac
     const SimfileEvent* current_event = simfile_event_buffer_front(&tracker->event_buffer);
 
     if (current_event == NULL) {
+        return result;
+    }
+
+    // are we too early to process this event?
+    const float min_time = current_event->time - tracker->time_windows[INPUT_TRACKER_RESULT_BOO];
+    if (tracker->context->current_time < min_time) {
         return result;
     }
 
@@ -89,13 +108,6 @@ SimfileInputTrackerResult simfile_input_tracker_update(SimfileInputTracker* trac
             int pressed = tracker->input_interface.button_was_pressed(tracker->button_to_column_map[i], tracker->input_interface.callback_arg);
 
             if (pressed) {
-                
-                // are we too early to process this event?
-                const float min_time = current_event->time - tracker->time_windows[INPUT_TRACKER_RESULT_BOO];
-                if (tracker->context->current_time < min_time) {
-                    return result;
-                }
-                
                 result.type = simfile_input_tracker_update_tap_event(tracker, current_event, i);
             }
         }

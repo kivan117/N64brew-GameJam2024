@@ -138,7 +138,7 @@ void minigame_loop(float deltatime)
 
     joypad_buttons_t btn = joypad_get_buttons_pressed(0);
     // if the song is finished restart it
-    if (simfile_context_finished(&context) && (btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_B)) {
+    if (simfile_context_finished(&context) && (btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_START)) {
         memset(indicators, 0, sizeof(indicators));
         mixer_ch_stop(1);
         next_note = 0;

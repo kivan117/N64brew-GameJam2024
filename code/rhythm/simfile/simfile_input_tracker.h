@@ -59,6 +59,8 @@ typedef struct {
 
     /** The index of the current event being considered */
     uint32_t event_index;
+
+    uint8_t event_column_mask;
 } SimfileInputTracker;
 
 void simfile_input_tracker_init(SimfileInputTracker* tracker, const SimfileContext* context, const SimfileInputTrackerInterface* input_interface);
