@@ -25,11 +25,10 @@ void button_overlay_uninit(ButtonOverlay* overlay) {
     sprite_free(overlay->b_button);
 }
 
+// TODO: clean this up
 static void fixup_overlay_item_textures(ButtonOverlay* overlay) {
     for (uint32_t i = 0; i < overlay->overlay_item_count; i++) {
         ButtonOverlayItem* item = &overlay->overlay_items[i];
-
-        debugf("%lu: x: %f y: %f (%u)(%u)\n", i, item->cx, item->cy, (uintptr_t)item->button1, (uintptr_t)item->button2);
 
         switch ((uintptr_t)item->button1)
         {
@@ -86,6 +85,21 @@ void button_overlay_draw(ButtonOverlay* overlay) {
     for (size_t i = 0; i < overlay->overlay_item_count; i++) {
         ButtonOverlayItem* overlay_item = &overlay->overlay_items[i];
 
-        rdpq_sprite_blit(overlay_item->button1, overlay_item->cx - overlay_item->button1->width / 2, overlay_item->cy - overlay_item->button1->height /2 , NULL);
+        if (!overlay_item->button2) {
+            rdpq_sprite_blit(overlay_item->button1, 
+                            overlay_item->cx - overlay_item->button1->width / 2, 
+                            overlay_item->cy - overlay_item->button1->height /2 , 
+                            NULL);
+        } else {
+            rdpq_sprite_blit(overlay_item->button1, 
+                overlay_item->cx - overlay_item->button1->width / 2, 
+                overlay_item->cy - overlay_item->button1->height, 
+                NULL);
+            rdpq_sprite_blit(overlay_item->button2, 
+                overlay_item->cx - overlay_item->button1->width / 2, 
+                overlay_item->cy, 
+                NULL);
+        }
+
     }
 }

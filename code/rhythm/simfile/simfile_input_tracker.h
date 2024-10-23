@@ -35,6 +35,9 @@ typedef enum {
     INPUT_TRACKER_RESULT_MISS,
 } SimfileInputTrackerResultType;
 
+// TODO: does this need to be a define or read directly from a file?
+#define SIMFILE_TRACKER_DEFAULT_COLUMN_COUNT 4
+
 typedef struct {
     uint32_t event_index;
     SimfileInputTrackerResultType type;
@@ -50,6 +53,7 @@ typedef struct {
 typedef struct {
     const SimfileContext* context;
     float time_windows[INPUT_TRACKER_RESULT_COUNT];
+    // TODO: Rename this column to button map?
     SimfileInputTrackerButton button_to_column_map[SIMFILE_MAX_COLUMN_COUNT];
     uint32_t column_count;
     SimfileEventBuffer event_buffer;
@@ -68,5 +72,6 @@ void simfile_input_tracker_init(SimfileInputTracker* tracker, const SimfileConte
 /** Ensure that this method is called _after_ simfile_context_update */
 SimfileInputTrackerResult simfile_input_tracker_update(SimfileInputTracker* tracker);
 void simfile_input_tracker_enqueue(SimfileInputTracker* tracker, const SimfileEvent* event);
+void simfile_input_tracker_set_button_to_column_map(SimfileInputTracker* tracker, const SimfileInputTrackerButton* default_button_to_column_map, uint32_t count);
 
 void simfile_input_tracker_reset(SimfileInputTracker* tracker);

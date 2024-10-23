@@ -15,7 +15,7 @@ static const float default_time_windows[INPUT_TRACKER_RESULT_COUNT] = {
     0.0215f, 0.043f, 0.102f, 0.135f, 0.180f // hard / medium?
     //0.064f, 0.096f, 0.204f, 0.270f, 0.360f // medium / easy?
 };
-#define SIMFILE_TRACKER_DEFAULT_COLUMN_COUNT 4
+
 static const SimfileInputTrackerButton default_button_to_column_map[SIMFILE_MAX_COLUMN_COUNT] = {
     SIMFILE_INPUT_TRACKER_BUTTON_A, SIMFILE_INPUT_TRACKER_BUTTON_B, SIMFILE_INPUT_TRACKER_BUTTON_L, SIMFILE_INPUT_TRACKER_BUTTON_R
 };
@@ -24,10 +24,15 @@ void simfile_input_tracker_init(SimfileInputTracker* tracker, const SimfileConte
     tracker->context = context;
     memcpy(&tracker->input_interface, input_interface, sizeof(SimfileInputTrackerInterface));
     memcpy(tracker->time_windows, default_time_windows, sizeof(default_time_windows));
-    memcpy(tracker->button_to_column_map, default_button_to_column_map, sizeof(default_button_to_column_map));
-    tracker->column_count = SIMFILE_TRACKER_DEFAULT_COLUMN_COUNT;
 
+    simfile_input_tracker_set_button_to_column_map(tracker, default_button_to_column_map, SIMFILE_MAX_COLUMN_COUNT);
     simfile_input_tracker_reset(tracker);
+}
+
+void simfile_input_tracker_set_button_to_column_map(SimfileInputTracker* tracker, const SimfileInputTrackerButton* default_button_to_column_map, uint32_t count) {
+    //TODO: assert that this matches the column count in the simfile?
+    memcpy(tracker->button_to_column_map, default_button_to_column_map, count * sizeof(SimfileInputTrackerButton));
+    tracker->column_count = count;
 }
 
 void simfile_input_tracker_reset(SimfileInputTracker* tracker) {
@@ -37,7 +42,7 @@ void simfile_input_tracker_reset(SimfileInputTracker* tracker) {
 
 void simfile_input_tracker_enqueue(SimfileInputTracker* tracker, const SimfileEvent* event) {
     if (tracker->event_buffer.count == 0) {
-        tracker->event_column_mask = ~event->columns;
+        tracker->event_column_mask = 0;
     }
 
     simfile_event_buffer_push_back(&tracker->event_buffer, event);
@@ -46,9 +51,7 @@ void simfile_input_tracker_enqueue(SimfileInputTracker* tracker, const SimfileEv
 static void simfile_input_current_event_complete(SimfileInputTracker* tracker) {
     simfile_event_buffer_pop_front(&tracker->event_buffer);
     tracker->event_index += 1;
-
-    const SimfileEvent* now_current_event = simfile_event_buffer_front(&tracker->event_buffer);
-    tracker->event_column_mask = (now_current_event != NULL) ? ~now_current_event->columns : 0;
+    tracker->event_column_mask = 0;
 }
 
 static SimfileInputTrackerResultType simfile_input_tracker_update_tap_event(SimfileInputTracker* tracker, const SimfileEvent* current_event, int column) {
@@ -61,7 +64,7 @@ static SimfileInputTrackerResultType simfile_input_tracker_update_tap_event(Simf
             tracker->event_column_mask |= (1 << column);
 
             // did we complete the event?
-            if (tracker->event_column_mask == 0xFF) {
+            if (tracker->event_column_mask == current_event->columns) {
                 simfile_input_current_event_complete(tracker);
                 return (SimfileInputTrackerResultType)r;
             }

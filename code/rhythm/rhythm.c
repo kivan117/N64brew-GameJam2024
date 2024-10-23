@@ -32,6 +32,7 @@ static uint32_t background_color = GAME_BACKGROUND;
 #define INDICATOR_LIFETIME 0.3f
 #define INDICATOR_COUNT 2
 static Indicator indicators[INDICATOR_COUNT];
+static size_t next_note = 0; // this needs to be rooled into indicator system
 
 wav64_t audio_file;
 static Simfile simfile;
@@ -39,7 +40,6 @@ static SimfileContext context;
 static SimfileInputTracker tracker;
 static NoteResults note_results;
 static ButtonOverlay button_overlay;
-static size_t next_note = 0;
 
 static void draw_indicators();
 static void show_next_indicator(const SimfileEvent* event, void* arg);
@@ -55,11 +55,23 @@ typedef struct {
     const char* wav_file;
     const char* simfile;
     const char* layout;
+    SimfileInputTrackerButton column_to_button_map[SIMFILE_TRACKER_DEFAULT_COLUMN_COUNT];
 } Loop;
 
 #define LOOP_COUNT 2
 static const Loop loops[LOOP_COUNT] = {
-    {"rom:/rhythm/tabloid_junkie.wav64", "rom:/rhythm/tabloid_junkie.csm", "rom:/rhythm/tabloid_junkie_layout.layout"}
+    {
+        "rom:/rhythm/tabloid_junkie.wav64", 
+        "rom:/rhythm/tabloid_junkie.csm", 
+        "rom:/rhythm/tabloid_junkie_layout.layout",
+        {SIMFILE_INPUT_TRACKER_BUTTON_A, SIMFILE_INPUT_TRACKER_BUTTON_B, SIMFILE_INPUT_TRACKER_BUTTON_L, SIMFILE_INPUT_TRACKER_BUTTON_R}
+    },
+    {
+        "rom:/rhythm/privacy.wav64", 
+        "rom:/rhythm/privacy.csm", 
+        "rom:/rhythm/privacy_layout.layout",
+        {SIMFILE_INPUT_TRACKER_BUTTON_L, SIMFILE_INPUT_TRACKER_BUTTON_R, SIMFILE_INPUT_TRACKER_BUTTON_Z, SIMFILE_INPUT_TRACKER_BUTTON_A}
+    }
 };
 
 static int current_loop = -1;
@@ -81,7 +93,7 @@ void minigame_init()
     #define TEXT_COLOR          0x6CBB3CFF
     rdpq_font_style(font, 0, &(rdpq_fontstyle_t){.color = color_from_packed32(TEXT_COLOR) });
 
-    load_loop(0);
+    load_loop(1);
 
 }
 
@@ -117,13 +129,23 @@ void minigame_loop(float deltatime)
 
     joypad_buttons_t btn = joypad_get_buttons_pressed(0);
     // if the song is finished restart it
-    if (simfile_context_finished(&context) && (btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_START)) {
-        memset(indicators, 0, sizeof(indicators));
-        mixer_ch_stop(1);
-        next_note = 0;
-        simfile_context_reset(&context);
-        simfile_input_tracker_reset(&tracker);
-        note_results_init(&note_results);
+    if (simfile_context_finished(&context)) {
+        // restart loop
+        if ((btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_START)) {
+            memset(indicators, 0, sizeof(indicators));
+            mixer_ch_stop(1);
+            next_note = 0;
+            simfile_context_reset(&context);
+            simfile_input_tracker_reset(&tracker);
+            note_results_init(&note_results);
+        }
+        else if (btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_R) {
+            current_loop += 1;
+            if (current_loop == LOOP_COUNT) {
+                current_loop = 0;
+            }
+            load_loop(current_loop);
+        }
     }
 
     // temporary fix
@@ -154,12 +176,16 @@ void minigame_cleanup()
 
 void load_loop(int index) {
     if (current_loop >= 0) {
+        mixer_ch_stop(1);
         wav64_close(&audio_file);
     }
 
     const Loop* loop = &loops[index];
 
+    // todo roll this into indicator system
     memset(indicators, 0, sizeof(indicators));
+    next_note = 0;
+
     wav64_open(&audio_file, loop->wav_file);
     simfile_open(&simfile, loop->simfile);
     simfile_context_init(&context, &simfile, INDICATOR_LIFETIME);
@@ -167,9 +193,11 @@ void load_loop(int index) {
 
     SimfileInputTrackerInterface input_interface = {player_controller_get_button_pressed, 0};
     simfile_input_tracker_init(&tracker, &context, &input_interface);
+    simfile_input_tracker_set_button_to_column_map(&tracker, loop->column_to_button_map, SIMFILE_TRACKER_DEFAULT_COLUMN_COUNT);
     button_overlay_open_f(&button_overlay, loop->layout);
     note_results_init(&note_results);
-    
+
+    current_loop = index;
 }
 
 static void show_next_indicator(const SimfileEvent* event, void* arg) {
@@ -189,7 +217,6 @@ static void show_next_indicator(const SimfileEvent* event, void* arg) {
 
     indicator->note = note;
     indicator->time_remaining = event->time - context.current_time;
-    debugf("show_next_indicator: %f, %f (%f)\n", note->cx, note->cy, indicator->time_remaining);
 
     simfile_input_tracker_enqueue(&tracker, event);
 }
@@ -232,6 +259,26 @@ void draw_indicators() {
 int player_controller_get_button_pressed(int button, void* arg) {
     uint32_t port = (uint32_t)arg;
     joypad_buttons_t btn = joypad_get_buttons_pressed(port);
+
+    // if ((uint32_t)button == SIMFILE_INPUT_TRACKER_BUTTON_R) {
+    //     debugf("player_controller_get_button_pressed R: %lu\n",  btn.raw & (uint32_t)button);
+    // }
+
+    // if ((uint32_t)button == SIMFILE_INPUT_TRACKER_BUTTON_L) {
+    //     debugf("player_controller_get_button_pressed L: %lu\n",  btn.raw & (uint32_t)button);
+    // }
+
+    // if ((uint32_t)button == SIMFILE_INPUT_TRACKER_BUTTON_Z) {
+    //     debugf("player_controller_get_button_pressed Z: %lu\n",  btn.raw & (uint32_t)button);
+    // }
+
+    // if ((uint32_t)button == SIMFILE_INPUT_TRACKER_BUTTON_A) {
+    //     debugf("player_controller_get_button_pressed A: %lu\n",  btn.raw & (uint32_t)button);
+    // }
+
+    // if ((uint32_t)button == SIMFILE_INPUT_TRACKER_BUTTON_B) {
+    //     debugf("player_controller_get_button_pressed B: %lu\n",  btn.raw & (uint32_t)button);
+    // }
 
     return btn.raw & (uint32_t)button;
 }

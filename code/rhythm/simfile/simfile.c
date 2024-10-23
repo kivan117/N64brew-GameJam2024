@@ -34,6 +34,10 @@ int simfile_open(Simfile* simfile, const char* path) {
     fread(simfile->events, sizeof(SimfileEvent), simfile->event_count, f);
     fclose(f);
 
+    for (uint32_t i = 0; i < simfile->event_count; i++) {
+        debugf("%lu: %f, %lu\n", i, simfile->events[i].time, (uint32_t)simfile->events[i].columns);
+    }
+
     return 1;
 }
 
