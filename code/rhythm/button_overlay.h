@@ -16,6 +16,8 @@ typedef struct {
     sprite_t* l_button;
     sprite_t* r_button;
     sprite_t* z_button;
+    sprite_t* cr_button;
+    sprite_t* cl_button;
     ButtonOverlayItem* overlay_items;
     uint32_t overlay_item_count;
 } ButtonOverlay;

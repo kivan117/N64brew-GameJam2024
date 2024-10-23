@@ -11,6 +11,8 @@ void button_overlay_init(ButtonOverlay* overlay) {
     overlay->l_button = sprite_load("rom:/core/LTrigger.sprite");
     overlay->r_button = sprite_load("rom:/core/RTrigger.sprite");
     overlay->z_button = sprite_load("rom:/core/ZTrigger.sprite");
+    overlay->cr_button = sprite_load("rom:/core/CRight.sprite");
+    overlay->cl_button = sprite_load("rom:/core/CLeft.sprite");
 }
 
 static void button_overlay_close(ButtonOverlay* overlay) {
@@ -37,8 +39,11 @@ static void fixup_overlay_item_textures(ButtonOverlay* overlay) {
             case 'l': item->button1 = overlay->l_button; break;
             case 'r': item->button1 = overlay->r_button; break;
             case 'z': item->button1 = overlay->z_button; break;
+            case '<': item->button1 = overlay->cr_button; break;
+            case '>': item->button1 = overlay->cl_button; break;
             
-            default: item->button1 = NULL;
+            default:
+                item->button1 = NULL;
         }
 
         switch ((uintptr_t)item->button2)
@@ -48,8 +53,11 @@ static void fixup_overlay_item_textures(ButtonOverlay* overlay) {
             case 'l': item->button2 = overlay->l_button; break;
             case 'r': item->button2 = overlay->r_button; break;
             case 'z': item->button2 = overlay->z_button; break;
+            case '<': item->button2 = overlay->cr_button; break;
+            case '>': item->button2 = overlay->cl_button; break;
             
-            default: item->button2 = NULL;
+            default: 
+                item->button2 = NULL;
         }
     }
 }

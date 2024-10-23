@@ -30,7 +30,7 @@ typedef struct {
 static uint32_t background_color = GAME_BACKGROUND;
 
 #define INDICATOR_LIFETIME 0.3f
-#define INDICATOR_COUNT 2
+#define INDICATOR_COUNT 5
 static Indicator indicators[INDICATOR_COUNT];
 static size_t next_note = 0; // this needs to be rooled into indicator system
 
@@ -58,7 +58,7 @@ typedef struct {
     SimfileInputTrackerButton column_to_button_map[SIMFILE_TRACKER_DEFAULT_COLUMN_COUNT];
 } Loop;
 
-#define LOOP_COUNT 2
+#define LOOP_COUNT 3
 static const Loop loops[LOOP_COUNT] = {
     {
         "rom:/rhythm/tabloid_junkie.wav64", 
@@ -71,6 +71,12 @@ static const Loop loops[LOOP_COUNT] = {
         "rom:/rhythm/privacy.csm", 
         "rom:/rhythm/privacy_layout.layout",
         {SIMFILE_INPUT_TRACKER_BUTTON_L, SIMFILE_INPUT_TRACKER_BUTTON_R, SIMFILE_INPUT_TRACKER_BUTTON_Z, SIMFILE_INPUT_TRACKER_BUTTON_A}
+    },
+    {
+        "rom:/rhythm/breaking_news.wav64", 
+        "rom:/rhythm/breaking_news.csm", 
+        "rom:/rhythm/breaking_news_layout.layout",
+        {SIMFILE_INPUT_TRACKER_BUTTON_C_LEFT, SIMFILE_INPUT_TRACKER_BUTTON_C_RIGHT, SIMFILE_INPUT_TRACKER_BUTTON_Z, SIMFILE_INPUT_TRACKER_BUTTON_A}
     }
 };
 
@@ -93,7 +99,7 @@ void minigame_init()
     #define TEXT_COLOR          0x6CBB3CFF
     rdpq_font_style(font, 0, &(rdpq_fontstyle_t){.color = color_from_packed32(TEXT_COLOR) });
 
-    load_loop(1);
+    load_loop(0);
 
 }
 

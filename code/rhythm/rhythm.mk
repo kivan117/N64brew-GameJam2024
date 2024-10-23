@@ -5,6 +5,9 @@ ASSETS_LIST += \
 	filesystem/rhythm/privacy.wav64 \
 	filesystem/rhythm/privacy.csm \
 	filesystem/rhythm/privacy_layout.layout \
+	filesystem/rhythm/breaking_news.wav64 \
+	filesystem/rhythm/breaking_news.csm \
+	filesystem/rhythm/breaking_news_layout.layout \
 	filesystem/rhythm/indicator.sprite
 
 

@@ -1,0 +1,58 @@
+{
+	"duration": 3.7,
+	"time_offset": -0.2,
+	"events": [
+		{
+			"time": 0.03,
+			"type": "tap",
+			"columns": [0]
+		},
+		{
+			"time": 0.5,
+			"type": "tap",
+			"columns": [1]
+		},
+		{
+			"time": 0.95,
+			"type": "tap",
+			"columns": [0]
+		},
+			{
+			"time": 1.17,
+			"type": "tap",
+			"columns": [0]
+		},
+		{
+			"time": 1.41,
+			"type": "tap",
+			"columns": [1]
+		},
+
+
+		{
+			"time": 1.88,
+			"type": "tap",
+			"columns": [0]
+		},
+		{
+			"time": 2.33,
+			"type": "tap",
+			"columns": [1]
+		},
+		{
+			"time": 2.81,
+			"type": "tap",
+			"columns": [0]
+		},
+			{
+			"time": 3.03,
+			"type": "tap",
+			"columns": [0]
+		},
+		{
+			"time": 3.26,
+			"type": "tap",
+			"columns": [1]
+		}
+	]
+}
