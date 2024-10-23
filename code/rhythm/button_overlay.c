@@ -39,8 +39,8 @@ static void fixup_overlay_item_textures(ButtonOverlay* overlay) {
             case 'l': item->button1 = overlay->l_button; break;
             case 'r': item->button1 = overlay->r_button; break;
             case 'z': item->button1 = overlay->z_button; break;
-            case '<': item->button1 = overlay->cr_button; break;
-            case '>': item->button1 = overlay->cl_button; break;
+            case '<': item->button1 = overlay->cl_button; break;
+            case '>': item->button1 = overlay->cr_button; break;
             
             default:
                 item->button1 = NULL;
@@ -53,8 +53,8 @@ static void fixup_overlay_item_textures(ButtonOverlay* overlay) {
             case 'l': item->button2 = overlay->l_button; break;
             case 'r': item->button2 = overlay->r_button; break;
             case 'z': item->button2 = overlay->z_button; break;
-            case '<': item->button2 = overlay->cr_button; break;
-            case '>': item->button2 = overlay->cl_button; break;
+            case '<': item->button2 = overlay->cl_button; break;
+            case '>': item->button2 = overlay->cr_button; break;
             
             default: 
                 item->button2 = NULL;
