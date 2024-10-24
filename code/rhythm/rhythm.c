@@ -2,10 +2,7 @@
 #include "../../core.h"
 #include "../../minigame.h"
 
-#include "note_results.h"
-#include "button_overlay.h"
-#include "indicators.h"
-#include "loop_info.h"
+#include "static_overlay.h"
 #include "resources.h"
 
 #include "simfile/simfile.h"
@@ -21,24 +18,12 @@ const MinigameDef minigame_def = {
     .instructions = "Press A to win."
 };
 
-RhythmResources resources;
-
 #define GAME_BACKGROUND     0x000000FF
 static uint32_t background_color = GAME_BACKGROUND;
 
 
-wav64_t audio_file;
-
-static Simfile simfile;
-static SimfileContext context;
-static SimfileInputTracker tracker;
-
-// static overlay
-static NoteResults note_results;
-static ButtonOverlay button_overlay;
-static Indicators indicators;
-
-static void show_next_indicator(const SimfileEvent* event, void* arg);
+RhythmResources resources;
+StaticOverlay static_overlay;
 
 static int player_controller_get_button_pressed(int button, void* arg);
 static void process_input();
@@ -79,10 +64,7 @@ void minigame_init()
 {
     display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, FILTERS_RESAMPLE);
     rhythm_resources_init(&resources);
-    simfile_init(&simfile);
-    button_overlay_init(&button_overlay, &resources);
-    note_results_init(&note_results, resources.fonts[RHYTHM_FONT_EVENT_RESULT], rhythm_resources_get_font_id(resources, RHYTHM_FONT_EVENT_RESULT));
-
+    static_overlay_init(&static_overlay, &resources);
     load_loop(0);
 }
 
@@ -111,21 +93,12 @@ void minigame_loop(float deltatime)
     rdpq_set_mode_standard();
     rdpq_mode_alphacompare(1);
 
-    simfile_context_update(&context, deltatime);
-    note_results_update(&note_results, deltatime);
-    process_input(deltatime);
-
     joypad_buttons_t btn = joypad_get_buttons_pressed(0);
     // if the song is finished restart it
-    if (simfile_context_finished(&context)) {
-        // restart loop
+    if (simfile_context_finished(&static_overlay.context)) {
+        // temporary to restart loop
         if ((btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_START)) {
-            
-            mixer_ch_stop(1);
-            indicators_reset(&indicators);
-            simfile_context_reset(&context);
-            simfile_input_tracker_reset(&tracker);
-            note_results_reset(&note_results);
+            static_overlay_restart_loop(&static_overlay);
         }
         else if (btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_R) {
             current_loop += 1;
@@ -136,14 +109,7 @@ void minigame_loop(float deltatime)
         }
     }
 
-    // temporary fix
-    if (!simfile_context_finished(&context) && context.current_time > 0 && !mixer_ch_playing(1)) {
-        wav64_play(&audio_file, 1);
-    }
-    
-    indicators_tick(&indicators, deltatime);
-    button_overlay_draw(&button_overlay);
-    note_results_draw(&note_results);
+    static_overlay_tick(&static_overlay, deltatime);
 
     rdpq_detach_show();
 }
@@ -154,56 +120,13 @@ void minigame_loop(float deltatime)
 ==============================*/
 void minigame_cleanup()
 {
-    mixer_ch_stop(1);
-    wav64_close(&audio_file);
-    simfile_uninit(&simfile);
-    button_overlay_uninit(&button_overlay);
+    static_overlay_uninit(&static_overlay);
     rhythm_resources_uninit(&resources);
 }
 
 void load_loop(int index) {
-    if (current_loop >= 0) {
-        mixer_ch_stop(1);
-        wav64_close(&audio_file);
-    }
-
     const LoopInfo* loop = &loops[index];
-
-    // Initialize simfile
-    wav64_open(&audio_file, loop->wav_file);
-    simfile_open(&simfile, loop->simfile);
-    simfile_context_init(&context, &simfile, DEFAULT_INDICATOR_LIFETIME);
-    simfile_context_push_callback(&context, show_next_indicator, NULL);
-
-    SimfileInputTrackerInterface input_interface = {player_controller_get_button_pressed, 0};
-    simfile_input_tracker_init(&tracker, &context, &input_interface);
-    simfile_input_tracker_set_button_to_column_map(&tracker, loop->column_to_button_map, SIMFILE_TRACKER_DEFAULT_COLUMN_COUNT);
-    
-    // intialize UI
-    button_overlay_open_f(&button_overlay, loop->layout);
-    note_results_reset(&note_results);
-    indicators_init(&indicators, DEFAULT_INDICATOR_LIFETIME, &context, &button_overlay, resources.sprites[RHYTHM_SPRITE_INDICATOR]);
+    static_overlay_load_loop(&static_overlay, loop);
 
     current_loop = index;
-}
-
-static void show_next_indicator(const SimfileEvent* event, void* arg) {
-    indicators_push(&indicators, event);
-    simfile_input_tracker_enqueue(&tracker, event);
-}
-
-int player_controller_get_button_pressed(int button, void* arg) {
-    uint32_t port = (uint32_t)arg;
-    joypad_buttons_t btn = joypad_get_buttons_pressed(port);
-
-    return btn.raw & (uint32_t)button;
-}
-
-void process_input() {
-    SimfileInputTrackerResult result = simfile_input_tracker_update(&tracker);
-
-    if (result.type <= INPUT_TRACKER_RESULT_BOO) {
-        ButtonOverlayItem* overlay_item = &button_overlay.overlay_items[result.event_index];
-        note_results_push(&note_results, overlay_item->cx, overlay_item->cy, result.type);
-    }
 }
