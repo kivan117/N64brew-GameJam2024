@@ -2,9 +2,19 @@
 
 #include <string.h>
 
-void note_results_init(NoteResults* note_results) {
+void note_results_init(NoteResults* note_results,rdpq_font_t* font, uint8_t font_id) {
+    note_results->font = font;
+    note_results->font_id = font_id;
+
+    #define TEXT_COLOR          0x6CBB3CFF
+    rdpq_font_style(font, font_id, &(rdpq_fontstyle_t){.color = color_from_packed32(TEXT_COLOR) });
+    note_results_reset(note_results);
+}
+
+void note_results_reset(NoteResults* note_results) {
     memset(note_results, 0 , sizeof(NoteResults));
 }
+
 void note_results_push(NoteResults* note_results, float x, float y, SimfileInputTrackerResultType type) {
     NoteResult* note_result = &note_results->buffer[note_results->tail];
 
@@ -44,7 +54,7 @@ void note_results_update(NoteResults* note_results, float deltatime) {
     }
 }
 
-void note_results_draw(NoteResults* note_results, rdpq_font_t *font) {
+void note_results_draw(NoteResults* note_results) {
     uint32_t current = note_results->head;
 
     while (current != note_results->tail) {
@@ -83,7 +93,7 @@ void note_results_draw(NoteResults* note_results, rdpq_font_t *font) {
         }
 
         if (note_result->time_remaining > 0.0f) {
-            rdpq_text_print(&(rdpq_textparms_t){ .style_id = 0 }, 1, note_result->x, note_result->y, message);
+            rdpq_text_print(&(rdpq_textparms_t){ .style_id = 0 }, note_results->font_id, note_result->x, note_result->y, message);
         }
 
         current += 1;

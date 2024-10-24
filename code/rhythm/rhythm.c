@@ -5,6 +5,8 @@
 #include "note_results.h"
 #include "button_overlay.h"
 #include "indicators.h"
+#include "loop_info.h"
+#include "resources.h"
 
 #include "simfile/simfile.h"
 #include "simfile/simfile_context.h"
@@ -19,10 +21,7 @@ const MinigameDef minigame_def = {
     .instructions = "Press A to win."
 };
 
-sprite_t* indicator_sprite;
-rdpq_font_t *font;
-
-
+RhythmResources resources;
 
 #define GAME_BACKGROUND     0x000000FF
 static uint32_t background_color = GAME_BACKGROUND;
@@ -44,17 +43,8 @@ static void show_next_indicator(const SimfileEvent* event, void* arg);
 static int player_controller_get_button_pressed(int button, void* arg);
 static void process_input();
 
-
-typedef struct {
-    const char* name;
-    const char* wav_file;
-    const char* simfile;
-    const char* layout;
-    SimfileInputTrackerButton column_to_button_map[SIMFILE_TRACKER_DEFAULT_COLUMN_COUNT];
-} Loop;
-
 #define LOOP_COUNT 3
-static const Loop loops[LOOP_COUNT] = {
+static const LoopInfo loops[LOOP_COUNT] = {
     {
         "Tabloid Junkie",
         "rom:/rhythm/tabloid_junkie.wav64", 
@@ -88,14 +78,10 @@ static void load_loop(int index);
 void minigame_init()
 {
     display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, FILTERS_RESAMPLE);
+    rhythm_resources_init(&resources);
     simfile_init(&simfile);
     button_overlay_init(&button_overlay);
-
-    indicator_sprite = sprite_load("rom:/rhythm/indicator.sprite");
-    font = rdpq_font_load_builtin(FONT_BUILTIN_DEBUG_VAR);
-    rdpq_text_register_font(1, font);
-    #define TEXT_COLOR          0x6CBB3CFF
-    rdpq_font_style(font, 0, &(rdpq_fontstyle_t){.color = color_from_packed32(TEXT_COLOR) });
+    note_results_init(&note_results, resources.fonts[RHYTHM_FONT_EVENT_RESULT], rhythm_resources_get_font_id(resources, RHYTHM_FONT_EVENT_RESULT));
 
     load_loop(0);
 }
@@ -139,7 +125,7 @@ void minigame_loop(float deltatime)
             indicators_reset(&indicators);
             simfile_context_reset(&context);
             simfile_input_tracker_reset(&tracker);
-            note_results_init(&note_results);
+            note_results_reset(&note_results);
         }
         else if (btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_R) {
             current_loop += 1;
@@ -157,7 +143,7 @@ void minigame_loop(float deltatime)
     
     indicators_tick(&indicators, deltatime);
     button_overlay_draw(&button_overlay);
-    note_results_draw(&note_results, font);
+    note_results_draw(&note_results);
 
     rdpq_detach_show();
 }
@@ -172,8 +158,7 @@ void minigame_cleanup()
     simfile_uninit(&simfile);
 
     wav64_close(&audio_file);
-    sprite_free(indicator_sprite);
-    rdpq_text_unregister_font(1);
+    rhythm_resources_uninit(&resources);
 }
 
 void load_loop(int index) {
@@ -182,19 +167,19 @@ void load_loop(int index) {
         wav64_close(&audio_file);
     }
 
-    const Loop* loop = &loops[index];
+    const LoopInfo* loop = &loops[index];
 
     wav64_open(&audio_file, loop->wav_file);
     simfile_open(&simfile, loop->simfile);
     simfile_context_init(&context, &simfile, DEFAULT_INDICATOR_LIFETIME);
     simfile_context_push_callback(&context, show_next_indicator, NULL);
-    indicators_init(&indicators, DEFAULT_INDICATOR_LIFETIME, &context, &button_overlay, indicator_sprite);
+    indicators_init(&indicators, DEFAULT_INDICATOR_LIFETIME, &context, &button_overlay, resources.sprites[RHYTHM_SPRITE_INDICATOR]);
 
     SimfileInputTrackerInterface input_interface = {player_controller_get_button_pressed, 0};
     simfile_input_tracker_init(&tracker, &context, &input_interface);
     simfile_input_tracker_set_button_to_column_map(&tracker, loop->column_to_button_map, SIMFILE_TRACKER_DEFAULT_COLUMN_COUNT);
     button_overlay_open_f(&button_overlay, loop->layout);
-    note_results_init(&note_results);
+    note_results_reset(&note_results);
 
     current_loop = index;
 }

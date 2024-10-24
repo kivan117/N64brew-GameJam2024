@@ -16,9 +16,12 @@ typedef struct {
 typedef struct {
     NoteResult buffer[NOTE_RESULT_BUFFER_SIZE];
     uint32_t head, tail;
+    rdpq_font_t* font;
+    uint8_t font_id;
 } NoteResults;
 
-void note_results_init(NoteResults* results);
+void note_results_init(NoteResults* results, rdpq_font_t* font, uint8_t font_id);
+void note_results_reset(NoteResults* results);
 void note_results_push(NoteResults* results, float x, float y, SimfileInputTrackerResultType type);
 void note_results_update(NoteResults* note_results, float deltatime);
-void note_results_draw(NoteResults* note_results, rdpq_font_t *font);
+void note_results_draw(NoteResults* note_results);
