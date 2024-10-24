@@ -7,6 +7,7 @@ void indicators_init(Indicators* indicators, float lifetime, const SimfileContex
     indicators->sprite = sprite;
     indicators->context = context;
     indicators->button_overlay = button_overlay;
+
     indicators_reset(indicators);
 }
 

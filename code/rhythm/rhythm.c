@@ -80,7 +80,7 @@ void minigame_init()
     display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, FILTERS_RESAMPLE);
     rhythm_resources_init(&resources);
     simfile_init(&simfile);
-    button_overlay_init(&button_overlay);
+    button_overlay_init(&button_overlay, &resources);
     note_results_init(&note_results, resources.fonts[RHYTHM_FONT_EVENT_RESULT], rhythm_resources_get_font_id(resources, RHYTHM_FONT_EVENT_RESULT));
 
     load_loop(0);
@@ -154,10 +154,10 @@ void minigame_loop(float deltatime)
 ==============================*/
 void minigame_cleanup()
 {
-    button_overlay_uninit(&button_overlay);
-    simfile_uninit(&simfile);
-
+    mixer_ch_stop(1);
     wav64_close(&audio_file);
+    simfile_uninit(&simfile);
+    button_overlay_uninit(&button_overlay);
     rhythm_resources_uninit(&resources);
 }
 
@@ -169,17 +169,20 @@ void load_loop(int index) {
 
     const LoopInfo* loop = &loops[index];
 
+    // Initialize simfile
     wav64_open(&audio_file, loop->wav_file);
     simfile_open(&simfile, loop->simfile);
     simfile_context_init(&context, &simfile, DEFAULT_INDICATOR_LIFETIME);
     simfile_context_push_callback(&context, show_next_indicator, NULL);
-    indicators_init(&indicators, DEFAULT_INDICATOR_LIFETIME, &context, &button_overlay, resources.sprites[RHYTHM_SPRITE_INDICATOR]);
 
     SimfileInputTrackerInterface input_interface = {player_controller_get_button_pressed, 0};
     simfile_input_tracker_init(&tracker, &context, &input_interface);
     simfile_input_tracker_set_button_to_column_map(&tracker, loop->column_to_button_map, SIMFILE_TRACKER_DEFAULT_COLUMN_COUNT);
+    
+    // intialize UI
     button_overlay_open_f(&button_overlay, loop->layout);
     note_results_reset(&note_results);
+    indicators_init(&indicators, DEFAULT_INDICATOR_LIFETIME, &context, &button_overlay, resources.sprites[RHYTHM_SPRITE_INDICATOR]);
 
     current_loop = index;
 }

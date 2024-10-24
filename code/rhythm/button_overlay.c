@@ -3,16 +3,10 @@
 #include <malloc.h>
 #include <string.h>
 
-void button_overlay_init(ButtonOverlay* overlay) {
+void button_overlay_init(ButtonOverlay* overlay, RhythmResources* resources) {
     overlay->overlay_item_count = 0;
     overlay->overlay_items = NULL;
-    overlay->a_button = sprite_load("rom:/core/AButton.sprite");
-    overlay->b_button = sprite_load("rom:/core/BButton.sprite");
-    overlay->l_button = sprite_load("rom:/core/LTrigger.sprite");
-    overlay->r_button = sprite_load("rom:/core/RTrigger.sprite");
-    overlay->z_button = sprite_load("rom:/core/ZTrigger.sprite");
-    overlay->cr_button = sprite_load("rom:/core/CRight.sprite");
-    overlay->cl_button = sprite_load("rom:/core/CLeft.sprite");
+    overlay->resources = resources;
 }
 
 static void button_overlay_close(ButtonOverlay* overlay) {
@@ -23,42 +17,29 @@ static void button_overlay_close(ButtonOverlay* overlay) {
 
 void button_overlay_uninit(ButtonOverlay* overlay) {
     button_overlay_close(overlay);
-    sprite_free(overlay->a_button);
-    sprite_free(overlay->b_button);
 }
 
-// TODO: clean this up
+static sprite_t* get_sprite_for_val(RhythmResources* resources, uintptr_t value) {
+    switch (value)
+    {
+        case 'a': return resources->sprites[RHYTHM_SPRITE_BUTTON_A];
+        case 'b': return resources->sprites[RHYTHM_SPRITE_BUTTON_B];
+        case 'l': return resources->sprites[RHYTHM_SPRITE_BUTTON_L];
+        case 'r': return resources->sprites[RHYTHM_SPRITE_BUTTON_R];
+        case 'z': return resources->sprites[RHYTHM_SPRITE_BUTTON_Z];
+        case '<': return resources->sprites[RHYTHM_SPRITE_BUTTON_CL];
+        case '>': return resources->sprites[RHYTHM_SPRITE_BUTTON_CR];
+        
+        default:
+            return NULL;
+    }
+}
+
 static void fixup_overlay_item_textures(ButtonOverlay* overlay) {
     for (uint32_t i = 0; i < overlay->overlay_item_count; i++) {
         ButtonOverlayItem* item = &overlay->overlay_items[i];
-
-        switch ((uintptr_t)item->button1)
-        {
-            case 'a': item->button1 = overlay->a_button; break;
-            case 'b': item->button1 = overlay->b_button; break;
-            case 'l': item->button1 = overlay->l_button; break;
-            case 'r': item->button1 = overlay->r_button; break;
-            case 'z': item->button1 = overlay->z_button; break;
-            case '<': item->button1 = overlay->cl_button; break;
-            case '>': item->button1 = overlay->cr_button; break;
-            
-            default:
-                item->button1 = NULL;
-        }
-
-        switch ((uintptr_t)item->button2)
-        {
-            case 'a': item->button2 = overlay->a_button; break;
-            case 'b': item->button2 = overlay->b_button; break;
-            case 'l': item->button2 = overlay->l_button; break;
-            case 'r': item->button2 = overlay->r_button; break;
-            case 'z': item->button2 = overlay->z_button; break;
-            case '<': item->button2 = overlay->cl_button; break;
-            case '>': item->button2 = overlay->cr_button; break;
-            
-            default: 
-                item->button2 = NULL;
-        }
+        item->button1 = get_sprite_for_val(overlay->resources, (uintptr_t)item->button1);
+        item->button2 = get_sprite_for_val(overlay->resources, (uintptr_t)item->button2);
     }
 }
 
