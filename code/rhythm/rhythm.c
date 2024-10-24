@@ -266,33 +266,13 @@ int player_controller_get_button_pressed(int button, void* arg) {
     uint32_t port = (uint32_t)arg;
     joypad_buttons_t btn = joypad_get_buttons_pressed(port);
 
-    // if ((uint32_t)button == SIMFILE_INPUT_TRACKER_BUTTON_R) {
-    //     debugf("player_controller_get_button_pressed R: %lu\n",  btn.raw & (uint32_t)button);
-    // }
-
-    // if ((uint32_t)button == SIMFILE_INPUT_TRACKER_BUTTON_L) {
-    //     debugf("player_controller_get_button_pressed L: %lu\n",  btn.raw & (uint32_t)button);
-    // }
-
-    // if ((uint32_t)button == SIMFILE_INPUT_TRACKER_BUTTON_Z) {
-    //     debugf("player_controller_get_button_pressed Z: %lu\n",  btn.raw & (uint32_t)button);
-    // }
-
-    // if ((uint32_t)button == SIMFILE_INPUT_TRACKER_BUTTON_A) {
-    //     debugf("player_controller_get_button_pressed A: %lu\n",  btn.raw & (uint32_t)button);
-    // }
-
-    // if ((uint32_t)button == SIMFILE_INPUT_TRACKER_BUTTON_B) {
-    //     debugf("player_controller_get_button_pressed B: %lu\n",  btn.raw & (uint32_t)button);
-    // }
-
     return btn.raw & (uint32_t)button;
 }
 
 void process_input() {
     SimfileInputTrackerResult result = simfile_input_tracker_update(&tracker);
 
-    if (result.type != INPUT_TRACKER_RESULT_NONE) {
+    if (result.type <= INPUT_TRACKER_RESULT_BOO) {
         ButtonOverlayItem* overlay_item = &button_overlay.overlay_items[result.event_index];
         note_results_push(&note_results, overlay_item->cx, overlay_item->cy, result.type);
     }
