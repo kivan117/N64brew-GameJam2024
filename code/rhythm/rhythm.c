@@ -4,6 +4,7 @@
 
 #include "note_results.h"
 #include "button_overlay.h"
+#include "indicators.h"
 
 #include "simfile/simfile.h"
 #include "simfile/simfile_context.h"
@@ -21,37 +22,31 @@ const MinigameDef minigame_def = {
 sprite_t* indicator_sprite;
 rdpq_font_t *font;
 
-typedef struct {
-    ButtonOverlayItem* note;
-    float time_remaining;
-} Indicator;
+
 
 #define GAME_BACKGROUND     0x000000FF
 static uint32_t background_color = GAME_BACKGROUND;
 
-#define INDICATOR_LIFETIME 0.3f
-#define INDICATOR_COUNT 5
-static Indicator indicators[INDICATOR_COUNT];
-static size_t next_note = 0; // this needs to be rooled into indicator system
 
 wav64_t audio_file;
+
 static Simfile simfile;
 static SimfileContext context;
 static SimfileInputTracker tracker;
+
+// static overlay
 static NoteResults note_results;
 static ButtonOverlay button_overlay;
+static Indicators indicators;
 
-static void draw_indicators();
 static void show_next_indicator(const SimfileEvent* event, void* arg);
-
-static void update_indicators(float deltatime);
-static void draw_indicators();
 
 static int player_controller_get_button_pressed(int button, void* arg);
 static void process_input();
 
 
 typedef struct {
+    const char* name;
     const char* wav_file;
     const char* simfile;
     const char* layout;
@@ -61,18 +56,21 @@ typedef struct {
 #define LOOP_COUNT 3
 static const Loop loops[LOOP_COUNT] = {
     {
+        "Tabloid Junkie",
         "rom:/rhythm/tabloid_junkie.wav64", 
         "rom:/rhythm/tabloid_junkie.csm", 
         "rom:/rhythm/tabloid_junkie_layout.layout",
         {SIMFILE_INPUT_TRACKER_BUTTON_A, SIMFILE_INPUT_TRACKER_BUTTON_B, SIMFILE_INPUT_TRACKER_BUTTON_L, SIMFILE_INPUT_TRACKER_BUTTON_R}
     },
     {
+        "Privacy",
         "rom:/rhythm/privacy.wav64", 
         "rom:/rhythm/privacy.csm", 
         "rom:/rhythm/privacy_layout.layout",
         {SIMFILE_INPUT_TRACKER_BUTTON_L, SIMFILE_INPUT_TRACKER_BUTTON_R, SIMFILE_INPUT_TRACKER_BUTTON_Z, SIMFILE_INPUT_TRACKER_BUTTON_A}
     },
     {
+        "Breaking News",
         "rom:/rhythm/breaking_news.wav64", 
         "rom:/rhythm/breaking_news.csm", 
         "rom:/rhythm/breaking_news_layout.layout",
@@ -100,7 +98,6 @@ void minigame_init()
     rdpq_font_style(font, 0, &(rdpq_fontstyle_t){.color = color_from_packed32(TEXT_COLOR) });
 
     load_loop(0);
-
 }
 
 /*==============================
@@ -128,7 +125,6 @@ void minigame_loop(float deltatime)
     rdpq_set_mode_standard();
     rdpq_mode_alphacompare(1);
 
-    update_indicators(deltatime);
     simfile_context_update(&context, deltatime);
     note_results_update(&note_results, deltatime);
     process_input(deltatime);
@@ -138,9 +134,9 @@ void minigame_loop(float deltatime)
     if (simfile_context_finished(&context)) {
         // restart loop
         if ((btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_START)) {
-            memset(indicators, 0, sizeof(indicators));
+            
             mixer_ch_stop(1);
-            next_note = 0;
+            indicators_reset(&indicators);
             simfile_context_reset(&context);
             simfile_input_tracker_reset(&tracker);
             note_results_init(&note_results);
@@ -159,7 +155,7 @@ void minigame_loop(float deltatime)
         wav64_play(&audio_file, 1);
     }
     
-    draw_indicators();
+    indicators_tick(&indicators, deltatime);
     button_overlay_draw(&button_overlay);
     note_results_draw(&note_results, font);
 
@@ -188,14 +184,11 @@ void load_loop(int index) {
 
     const Loop* loop = &loops[index];
 
-    // todo roll this into indicator system
-    memset(indicators, 0, sizeof(indicators));
-    next_note = 0;
-
     wav64_open(&audio_file, loop->wav_file);
     simfile_open(&simfile, loop->simfile);
-    simfile_context_init(&context, &simfile, INDICATOR_LIFETIME);
+    simfile_context_init(&context, &simfile, DEFAULT_INDICATOR_LIFETIME);
     simfile_context_push_callback(&context, show_next_indicator, NULL);
+    indicators_init(&indicators, DEFAULT_INDICATOR_LIFETIME, &context, &button_overlay, indicator_sprite);
 
     SimfileInputTrackerInterface input_interface = {player_controller_get_button_pressed, 0};
     simfile_input_tracker_init(&tracker, &context, &input_interface);
@@ -207,59 +200,8 @@ void load_loop(int index) {
 }
 
 static void show_next_indicator(const SimfileEvent* event, void* arg) {
-    ButtonOverlayItem* note = &button_overlay.overlay_items[next_note++];
-    
-    // get next indicator
-    Indicator* indicator = NULL;
-    for (size_t i = 0; i < INDICATOR_COUNT; i++) {
-        if (indicators[i].time_remaining <= 0) {
-            indicator = &indicators[i];
-        }
-    }
-
-    if (!indicator) {
-        return; // should not happen
-    }
-
-    indicator->note = note;
-    indicator->time_remaining = event->time - context.current_time;
-
+    indicators_push(&indicators, event);
     simfile_input_tracker_enqueue(&tracker, event);
-}
-
-void update_indicators(float deltatime) {
-    for (size_t i = 0; i < INDICATOR_COUNT; i++) {
-        Indicator* indicator = indicators + i;
-
-        if (indicator->time_remaining <= 0) {
-            continue;
-        }
-        
-        indicator->time_remaining = indicator->time_remaining - deltatime;
-    }
-}
-
-void draw_indicators() {
-    rdpq_blitparms_t params;
-    memset(&params, 0, sizeof(rdpq_blitparms_t));
-
-    for (size_t i = 0; i < INDICATOR_COUNT; i++) {
-        Indicator* indicator = indicators + i;
-
-        if (indicator->time_remaining <= 0) {
-            continue;
-        }
-
-        float indicator_scale = 0.5f + ((indicator->time_remaining / INDICATOR_LIFETIME)* 0.5f) ;
-
-        float indicator_x = indicator->note->cx - (indicator_sprite->width / 2) * indicator_scale;
-        float indicator_y = indicator->note->cy - (indicator_sprite->height / 2) * indicator_scale;
-
-        params.scale_x = indicator_scale;
-        params.scale_y = indicator_scale;
-
-        rdpq_sprite_blit(indicator_sprite, indicator_x, indicator_y, &params);
-    }
 }
 
 int player_controller_get_button_pressed(int button, void* arg) {
