@@ -1,7 +1,7 @@
 #pragma once
 
 #include "button_overlay.h"
-#include "simfile/simfile_context.h"
+#include "simfile/simfile_playback.h"
 
 #include <libdragon.h>
 #include <stdint.h>
@@ -18,12 +18,12 @@ typedef struct {
     float lifetime;
     sprite_t* sprite;
     size_t next_note;
-    const SimfileContext* context;
+    const SimfilePlayback* playback;
     const ButtonOverlay* button_overlay;
     Indicator indicators[MAX_INDICATOR_COUNT];
 } Indicators;
 
-void indicators_init(Indicators* indicators, float lifetime, const SimfileContext* context, const ButtonOverlay* button_overlay, sprite_t* sprite);
+void indicators_init(Indicators* indicators, float lifetime, const SimfilePlayback* playback, const ButtonOverlay* button_overlay, sprite_t* sprite);
 void indicators_reset(Indicators* indicators);
 
 void indicators_push(Indicators* indicators, const SimfileEvent* event);

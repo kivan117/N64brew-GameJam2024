@@ -26,7 +26,7 @@ void static_overlay_uninit(StaticOverlay* overlay) {
 }
 
 void static_overlay_tick(StaticOverlay* overlay, float deltatime) {
-    simfile_context_update(&overlay->context, deltatime);
+    simfile_playback_update(&overlay->context, deltatime);
     note_results_update(&overlay->note_results, deltatime);
     
     
@@ -37,7 +37,7 @@ void static_overlay_tick(StaticOverlay* overlay, float deltatime) {
         note_results_push(&overlay->note_results, overlay_item->cx, overlay_item->cy, result.type);
     }
 
-    if (!simfile_context_finished(&overlay->context) && overlay->context.current_time > 0 && !mixer_ch_playing(1)) {
+    if (!simfile_playback_finished(&overlay->context) && overlay->context.current_time > 0 && !mixer_ch_playing(1)) {
         wav64_play(&overlay->audio_file, 1);
     }
     
@@ -67,8 +67,8 @@ void static_overlay_load_loop(StaticOverlay* overlay, const LoopInfo* loop) {
     // Initialize simfile
     wav64_open(&overlay->audio_file, loop->wav_file);
     simfile_open(&overlay->simfile, loop->simfile);
-    simfile_context_init(&overlay->context, &overlay->simfile, DEFAULT_INDICATOR_LIFETIME);
-    simfile_context_push_callback(&overlay->context, simfile_next_event_func, overlay);
+    simfile_playback_init(&overlay->context, &overlay->simfile, DEFAULT_INDICATOR_LIFETIME);
+    simfile_playback_push_callback(&overlay->context, simfile_next_event_func, overlay);
 
     SimfileInputTrackerInterface input_interface = {player_controller_get_button_pressed, 0};
     simfile_input_tracker_init(&overlay->tracker, &overlay->context, &input_interface);
@@ -85,7 +85,7 @@ void static_overlay_load_loop(StaticOverlay* overlay, const LoopInfo* loop) {
 void static_overlay_restart_loop(StaticOverlay* overlay) {
     mixer_ch_stop(1);
     indicators_reset(&overlay->indicators);
-    simfile_context_reset(&overlay->context);
+    simfile_playback_reset(&overlay->context);
     simfile_input_tracker_reset(&overlay->tracker);
     note_results_reset(&overlay->note_results);
 }

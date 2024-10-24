@@ -6,7 +6,7 @@
 #include "resources.h"
 
 #include "simfile/simfile.h"
-#include "simfile/simfile_context.h"
+#include "simfile/simfile_playback.h"
 #include "simfile/simfile_input_tracker.h"
 
 #include <string.h>
@@ -91,7 +91,7 @@ void minigame_loop(float deltatime)
 
     joypad_buttons_t btn = joypad_get_buttons_pressed(0);
     // if the song is finished restart it
-    if (simfile_context_finished(&static_overlay.context)) {
+    if (simfile_playback_finished(&static_overlay.context)) {
         // temporary to restart loop
         if ((btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_START)) {
             static_overlay_restart_loop(&static_overlay);

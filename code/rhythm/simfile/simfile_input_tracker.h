@@ -1,6 +1,6 @@
 #pragma once
 
-#include "simfile_context.h"
+#include "simfile_playback.h"
 #include "simfile_event_buffer.h"
 
 typedef enum {
@@ -48,7 +48,7 @@ typedef struct {
 } SimfileInputTrackerInterface;
 
 typedef struct {
-    const SimfileContext* context;
+    const SimfilePlayback* context;
     float time_windows[INPUT_TRACKER_RESULT_COUNT];
     // TODO: Rename this column to button map?
     SimfileInputTrackerButton button_to_column_map[SIMFILE_MAX_COLUMN_COUNT];
@@ -64,9 +64,9 @@ typedef struct {
     uint8_t event_column_mask;
 } SimfileInputTracker;
 
-void simfile_input_tracker_init(SimfileInputTracker* tracker, const SimfileContext* context, const SimfileInputTrackerInterface* input_interface);
+void simfile_input_tracker_init(SimfileInputTracker* tracker, const SimfilePlayback* context, const SimfileInputTrackerInterface* input_interface);
 
-/** Ensure that this method is called _after_ simfile_context_update */
+/** Ensure that this method is called _after_ simfile_playback_update */
 SimfileInputTrackerResult simfile_input_tracker_update(SimfileInputTracker* tracker);
 void simfile_input_tracker_enqueue(SimfileInputTracker* tracker, const SimfileEvent* event);
 void simfile_input_tracker_set_button_to_column_map(SimfileInputTracker* tracker, const SimfileInputTrackerButton* default_button_to_column_map, uint32_t count);

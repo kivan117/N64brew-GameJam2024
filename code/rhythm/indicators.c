@@ -2,10 +2,10 @@
 
 #include <string.h>
 
-void indicators_init(Indicators* indicators, float lifetime, const SimfileContext* context, const ButtonOverlay* button_overlay, sprite_t* sprite) {
+void indicators_init(Indicators* indicators, float lifetime, const SimfilePlayback* playback, const ButtonOverlay* button_overlay, sprite_t* sprite) {
     indicators->lifetime = lifetime;
     indicators->sprite = sprite;
-    indicators->context = context;
+    indicators->playback = playback;
     indicators->button_overlay = button_overlay;
 
     indicators_reset(indicators);
@@ -32,7 +32,7 @@ void indicators_push(Indicators* indicators, const SimfileEvent* event) {
     }
 
     indicator->overlay_item = overlay_item;
-    indicator->time_remaining = event->time - indicators->context->current_time;
+    indicator->time_remaining = event->time - indicators->playback->current_time;
 }
 
 void indicators_tick(Indicators* indicators, float deltatime) {

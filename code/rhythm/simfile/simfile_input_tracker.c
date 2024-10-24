@@ -20,7 +20,7 @@ static const SimfileInputTrackerButton default_button_to_column_map[SIMFILE_DEFA
     SIMFILE_INPUT_TRACKER_BUTTON_A, SIMFILE_INPUT_TRACKER_BUTTON_B, SIMFILE_INPUT_TRACKER_BUTTON_L, SIMFILE_INPUT_TRACKER_BUTTON_R
 };
 
-void simfile_input_tracker_init(SimfileInputTracker* tracker, const SimfileContext* context, const SimfileInputTrackerInterface* input_interface){
+void simfile_input_tracker_init(SimfileInputTracker* tracker, const SimfilePlayback* context, const SimfileInputTrackerInterface* input_interface){
     tracker->context = context;
     memcpy(&tracker->input_interface, input_interface, sizeof(SimfileInputTrackerInterface));
     memcpy(tracker->time_windows, default_time_windows, sizeof(default_time_windows));

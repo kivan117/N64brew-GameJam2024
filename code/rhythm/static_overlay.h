@@ -7,7 +7,7 @@
 #include "resources.h"
 
 #include "simfile/simfile.h"
-#include "simfile/simfile_context.h"
+#include "simfile/simfile_playback.h"
 #include "simfile/simfile_input_tracker.h"
 
 typedef struct {
@@ -17,7 +17,7 @@ typedef struct {
 
     // Simfile tracking
     Simfile simfile;
-    SimfileContext context;
+    SimfilePlayback context;
     SimfileInputTracker tracker;
 
     // UI
