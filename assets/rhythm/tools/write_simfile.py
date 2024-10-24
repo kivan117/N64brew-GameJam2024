@@ -7,9 +7,11 @@ import sys
 type_map = {
 	"none": 0,
 	"tap": 1,
-	"hold": 2,
-	"roll": 3,
-	"mine": 4
+	"hold_start": 2,
+	"hold_end": 3,
+	"roll_start": 4,
+	"roll_end": 5,
+	"mine": 6
 }
 
 input_path = sys.argv[1]
@@ -31,13 +33,12 @@ with open(output_path, "wb") as output_file:
 
 	for event in simfile["events"]:
 		
-		duration = 0 # TODO: convert to 8.8 when holds / rolls supported
 		event_type = type_map[event["type"]]
 		column_mask = 0
 		for col in event["columns"]:
 			column_mask |= 1 << col
 
 		# this format string needs to correspond with SimfileEvent
-		event_data = struct.pack("{}fHBB".format(endian), event["time"], duration, event_type, column_mask);
+		event_data = struct.pack("{}fHH".format(endian), event["time"], event_type, column_mask);
 
 		output_file.write(event_data)

@@ -7,5 +7,5 @@ typedef struct {
     const char* wav_file;
     const char* simfile;
     const char* layout;
-    SimfileInputTrackerButton column_to_button_map[SIMFILE_TRACKER_DEFAULT_COLUMN_COUNT];
+    SimfileInputTrackerButton column_to_button_map[SIMFILE_DEFAULT_COLUMN_COUNT];
 } LoopInfo;

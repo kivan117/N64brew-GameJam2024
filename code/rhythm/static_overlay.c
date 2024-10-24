@@ -9,7 +9,6 @@ void static_overlay_init(StaticOverlay* overlay, RhythmResources* resources){
     simfile_init(&overlay->simfile);
     button_overlay_init(&overlay->button_overlay, resources);
     note_results_init(&overlay->note_results, resources->fonts[RHYTHM_FONT_EVENT_RESULT], rhythm_resources_get_font_id(resources, RHYTHM_FONT_EVENT_RESULT));
-
 }
 
 static void close_audio(StaticOverlay* overlay) {
@@ -73,7 +72,7 @@ void static_overlay_load_loop(StaticOverlay* overlay, const LoopInfo* loop) {
 
     SimfileInputTrackerInterface input_interface = {player_controller_get_button_pressed, 0};
     simfile_input_tracker_init(&overlay->tracker, &overlay->context, &input_interface);
-    simfile_input_tracker_set_button_to_column_map(&overlay->tracker, loop->column_to_button_map, SIMFILE_TRACKER_DEFAULT_COLUMN_COUNT);
+    simfile_input_tracker_set_button_to_column_map(&overlay->tracker, loop->column_to_button_map, SIMFILE_DEFAULT_COLUMN_COUNT);
     
     // intialize UI
     button_overlay_open_f(&overlay->button_overlay, loop->layout);

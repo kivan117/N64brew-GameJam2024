@@ -35,9 +35,6 @@ typedef enum {
     INPUT_TRACKER_RESULT_MISS,
 } SimfileInputTrackerResultType;
 
-// TODO: does this need to be a define or read directly from a file?
-#define SIMFILE_TRACKER_DEFAULT_COLUMN_COUNT 4
-
 typedef struct {
     uint32_t event_index;
     SimfileInputTrackerResultType type;

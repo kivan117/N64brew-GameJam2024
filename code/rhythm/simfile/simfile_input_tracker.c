@@ -16,7 +16,7 @@ static const float default_time_windows[INPUT_TRACKER_RESULT_COUNT] = {
     //0.064f, 0.096f, 0.204f, 0.270f, 0.360f // medium / easy?
 };
 
-static const SimfileInputTrackerButton default_button_to_column_map[SIMFILE_MAX_COLUMN_COUNT] = {
+static const SimfileInputTrackerButton default_button_to_column_map[SIMFILE_DEFAULT_COLUMN_COUNT] = {
     SIMFILE_INPUT_TRACKER_BUTTON_A, SIMFILE_INPUT_TRACKER_BUTTON_B, SIMFILE_INPUT_TRACKER_BUTTON_L, SIMFILE_INPUT_TRACKER_BUTTON_R
 };
 
@@ -25,7 +25,7 @@ void simfile_input_tracker_init(SimfileInputTracker* tracker, const SimfileConte
     memcpy(&tracker->input_interface, input_interface, sizeof(SimfileInputTrackerInterface));
     memcpy(tracker->time_windows, default_time_windows, sizeof(default_time_windows));
 
-    simfile_input_tracker_set_button_to_column_map(tracker, default_button_to_column_map, SIMFILE_MAX_COLUMN_COUNT);
+    simfile_input_tracker_set_button_to_column_map(tracker, default_button_to_column_map, SIMFILE_DEFAULT_COLUMN_COUNT);
     simfile_input_tracker_reset(tracker);
 }
 

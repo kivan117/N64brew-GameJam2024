@@ -27,4 +27,4 @@ typedef struct {
 void rhythm_resources_init(RhythmResources* resources);
 void rhythm_resources_uninit(RhythmResources* resources);
 
-#define rhythm_resources_get_font_id(resources, index) ((index + 1))
+#define rhythm_resources_get_font_id(resources, index) ((index) + 1)

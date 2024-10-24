@@ -12,7 +12,8 @@ void note_results_init(NoteResults* note_results,rdpq_font_t* font, uint8_t font
 }
 
 void note_results_reset(NoteResults* note_results) {
-    memset(note_results, 0 , sizeof(NoteResults));
+    note_results->head = 0;
+    note_results->tail = 0;
 }
 
 void note_results_push(NoteResults* note_results, float x, float y, SimfileInputTrackerResultType type) {
@@ -93,7 +94,7 @@ void note_results_draw(NoteResults* note_results) {
         }
 
         if (note_result->time_remaining > 0.0f) {
-            rdpq_text_print(&(rdpq_textparms_t){ .style_id = 0 }, note_results->font_id, note_result->x, note_result->y, message);
+            rdpq_text_print(&(rdpq_textparms_t){ .style_id = note_results->font_id }, note_results->font_id, note_result->x, note_result->y, message);
         }
 
         current += 1;

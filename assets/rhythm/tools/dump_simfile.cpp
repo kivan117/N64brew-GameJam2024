@@ -10,9 +10,8 @@ typedef struct {
 
 typedef struct {
     float time;
-    uint16_t duration;
-    uint8_t type;
-    uint8_t columns;
+    uint16_t type;
+    uint16_t columns;
 } SimfileEvent;
 
 int main(int argc, char** argv) {

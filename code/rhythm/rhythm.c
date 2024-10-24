@@ -21,12 +21,8 @@ const MinigameDef minigame_def = {
 #define GAME_BACKGROUND     0x000000FF
 static uint32_t background_color = GAME_BACKGROUND;
 
-
 RhythmResources resources;
 StaticOverlay static_overlay;
-
-static int player_controller_get_button_pressed(int button, void* arg);
-static void process_input();
 
 #define LOOP_COUNT 3
 static const LoopInfo loops[LOOP_COUNT] = {
