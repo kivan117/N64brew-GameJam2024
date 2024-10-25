@@ -5,6 +5,7 @@
 #include "indicators.h"
 #include "loop_info.h"
 #include "resources.h"
+#include "track.h"
 
 #include "simfile/simfile.h"
 #include "simfile/simfile_playback.h"
@@ -12,12 +13,10 @@
 
 typedef struct {
     RhythmResources* resources;
-    wav64_t audio_file;
-    int is_loaded;
+    Track* track;
+    int is_loaded; // TODO: is this needed in overlay?
 
-    // Simfile tracking
-    Simfile simfile;
-    SimfilePlayback context;
+    // TODO: this will move to player
     SimfileInputTracker tracker;
 
     // UI
@@ -26,9 +25,9 @@ typedef struct {
     Indicators indicators;
 } StaticOverlay;
 
-void static_overlay_init(StaticOverlay* static_overlay, RhythmResources* resources);
+void static_overlay_init(StaticOverlay* static_overlay, Track* track, RhythmResources* resources);
 void static_overlay_uninit(StaticOverlay* static_overlay);
 void static_overlay_tick(StaticOverlay* static_overlay, float deltatime);
 
 void static_overlay_load_loop(StaticOverlay* static_overlay, const LoopInfo* loop);
-void static_overlay_restart_loop(StaticOverlay* static_overlay);
+void static_overlay_reset(StaticOverlay* static_overlay);

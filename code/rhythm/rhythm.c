@@ -4,6 +4,7 @@
 
 #include "static_overlay.h"
 #include "resources.h"
+#include "track.h"
 
 #include "simfile/simfile.h"
 #include "simfile/simfile_playback.h"
@@ -22,6 +23,7 @@ const MinigameDef minigame_def = {
 static uint32_t background_color = GAME_BACKGROUND;
 
 RhythmResources resources;
+Track track;
 StaticOverlay static_overlay;
 
 #define LOOP_COUNT 3
@@ -60,7 +62,8 @@ void minigame_init()
 {
     display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, FILTERS_RESAMPLE);
     rhythm_resources_init(&resources);
-    static_overlay_init(&static_overlay, &resources);
+    track_init(&track, 1);
+    static_overlay_init(&static_overlay, &track, &resources);
     load_loop(0);
 }
 
@@ -91,10 +94,11 @@ void minigame_loop(float deltatime)
 
     joypad_buttons_t btn = joypad_get_buttons_pressed(0);
     // if the song is finished restart it
-    if (simfile_playback_finished(&static_overlay.context)) {
+    if (simfile_playback_finished(&track.playback)) {
         // temporary to restart loop
         if ((btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_START)) {
-            static_overlay_restart_loop(&static_overlay);
+            track_reset(&track);
+            static_overlay_reset(&static_overlay);
         }
         else if (btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_R) {
             current_loop += 1;
@@ -105,6 +109,7 @@ void minigame_loop(float deltatime)
         }
     }
 
+    track_update(&track, deltatime);
     static_overlay_tick(&static_overlay, deltatime);
 
     rdpq_detach_show();
@@ -116,12 +121,14 @@ void minigame_loop(float deltatime)
 ==============================*/
 void minigame_cleanup()
 {
+    track_unload(&track);
     static_overlay_uninit(&static_overlay);
     rhythm_resources_uninit(&resources);
 }
 
 void load_loop(int index) {
     const LoopInfo* loop = &loops[index];
+    track_load(&track, loop->wav_file, loop->simfile, DEFAULT_INDICATOR_LIFETIME);
     static_overlay_load_loop(&static_overlay, loop);
 
     current_loop = index;
