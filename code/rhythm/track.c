@@ -2,14 +2,9 @@
 
 #include <assert.h>
 
-void track_init(Track* track, int mixer_channel) {
-    track->is_loaded = 0;
+void track_init(Track* track, int mixer_channel, const char* audio_file_asset, const char* simfile_asset, float event_lifetime) {
     track->mixer_channel = mixer_channel;
     simfile_init(&track->simfile);
-}
-
-void track_load(Track* track, const char* audio_file_asset, const char* simfile_asset, float event_lifetime) {
-    track_unload(track);
 
     wav64_open(&track->audio_file, audio_file_asset);
     assert(simfile_open(&track->simfile, simfile_asset));
@@ -17,10 +12,6 @@ void track_load(Track* track, const char* audio_file_asset, const char* simfile_
 }
 
 void track_unload(Track* track) {
-    if (!track->is_loaded) {
-        return;
-    }
-
     mixer_ch_stop(track->mixer_channel);
     wav64_close(&track->audio_file);
     simfile_uninit(&track->simfile);

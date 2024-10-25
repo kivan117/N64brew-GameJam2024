@@ -52,7 +52,6 @@ int button_overlay_open_f(ButtonOverlay* overlay, const char* path) {
     }
 
     fread(&overlay->overlay_item_count, sizeof(uint32_t), 1, f);
-    debugf("load overlay: %lu\n", overlay->overlay_item_count);
     overlay->overlay_items = malloc(sizeof(ButtonOverlayItem) * overlay->overlay_item_count);
     fread(overlay->overlay_items, sizeof(ButtonOverlayItem), overlay->overlay_item_count, f);
     fixup_overlay_item_textures(overlay);
