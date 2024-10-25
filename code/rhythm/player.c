@@ -1,10 +1,10 @@
 #include "player.h"
 
 static int player_controller_get_button_pressed(int button, void* arg);
-static void simfile_next_event_func(const SimfileEvent* event, void* arg);
+static void player_next_event_func(const SimfileEvent* event, void* arg);
 
 void player_init(Player* player, Track* track) {
-    simfile_playback_push_callback(&track->playback, simfile_next_event_func, player);
+    simfile_playback_push_callback(&track->playback, player_next_event_func, player);
 
     // todo: this is going to moved out to the human player
     #define TEMP_PLAYER_CONTROLLER_PORT
@@ -30,7 +30,7 @@ int player_controller_get_button_pressed(int button, void* arg) {
 }
 
 // triggered when the next event from the simfile context is triggered
-static void simfile_next_event_func(const SimfileEvent* event, void* arg) {
+static void player_next_event_func(const SimfileEvent* event, void* arg) {
     Player* player = (Player*)arg;
     simfile_input_tracker_enqueue(&player->input_tracker, event);
 }

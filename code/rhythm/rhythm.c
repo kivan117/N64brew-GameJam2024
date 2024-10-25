@@ -92,6 +92,11 @@ void minigame_loop(float deltatime)
     rdpq_mode_alphacompare(1);
 
     joypad_buttons_t btn = joypad_get_buttons_pressed(0);
+
+    if (btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_DPAD_UP) {
+        background_color = 0x00FF00FF;
+    }
+
     // if the song is finished restart it
     if (simfile_playback_finished(&track.playback)) {
         // temporary to restart loop
@@ -100,13 +105,22 @@ void minigame_loop(float deltatime)
             player_reset(&player);
             static_overlay_reset(&static_overlay);
         }
-        else if (btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_R) {
-            current_loop += 1;
-            if (current_loop == LOOP_COUNT) {
-                current_loop = 0;
-            }
-            load_loop(current_loop);
+    }
+
+    if (btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_DPAD_RIGHT) {
+        current_loop += 1;
+        if (current_loop == LOOP_COUNT) {
+            current_loop = 0;
         }
+        load_loop(current_loop);
+    }
+
+    if (btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_DPAD_LEFT) {
+        current_loop -= 1;
+        if (current_loop < 0) {
+            current_loop = LOOP_COUNT - 1;
+        }
+        load_loop(current_loop);
     }
 
     track_update(&track, deltatime);

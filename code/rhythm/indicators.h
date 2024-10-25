@@ -20,7 +20,8 @@ typedef struct {
     size_t next_note;
     const SimfilePlayback* playback;
     const ButtonOverlay* button_overlay;
-    Indicator indicators[MAX_INDICATOR_COUNT];
+    Indicator buffer[MAX_INDICATOR_COUNT];
+    uint32_t head, tail;
 } Indicators;
 
 void indicators_init(Indicators* indicators, float lifetime, const SimfilePlayback* playback, const ButtonOverlay* button_overlay, sprite_t* sprite);

@@ -41,7 +41,7 @@ void simfile_playback_update(SimfilePlayback* playback, float time) {
     // dispatch all events that are within the time window
     while (event_time >= current_event->time) {
         for (size_t i = 0; i < playback->callback_entry_count; i++) {
-            SimfilePlaybackEventCallbackEntry* callback_entry = playback->callback_entries;
+            SimfilePlaybackEventCallbackEntry* callback_entry = &playback->callback_entries[i];
             callback_entry->func(current_event, callback_entry->arg);
         }
 
