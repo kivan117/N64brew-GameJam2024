@@ -3,7 +3,7 @@
 #include "simfile.h"
 
 typedef void(*SimfilePlaybackEventCallbackFunc)(const SimfileEvent* event, void* arg);
-#define SIMFILE_PLAYBACK_MAX_CALLBACKS_COUNT 8
+#define SIMFILE_PLAYBACK_MAX_CALLBACKS_COUNT 16
 
 typedef struct {
     SimfilePlaybackEventCallbackFunc func;
