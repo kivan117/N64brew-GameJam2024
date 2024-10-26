@@ -2,13 +2,14 @@
 #include "../../core.h"
 #include "../../minigame.h"
 
-#include "static_overlay.h"
-#include "resources.h"
-#include "track.h"
-
 #include "simfile/simfile.h"
 #include "simfile/simfile_playback.h"
 #include "simfile/simfile_input_tracker.h"
+
+#include "static_overlay.h"
+#include "resources.h"
+#include "track.h"
+#include "player_controller.h"
 
 #include <string.h>
 
@@ -24,7 +25,7 @@ static uint32_t background_color = GAME_BACKGROUND;
 
 RhythmResources resources;
 Track track;
-Player player;
+PlayerController player;
 StaticOverlay static_overlay;
 
 #define LOOP_COUNT 3
@@ -63,6 +64,7 @@ void minigame_init()
 {
     display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, FILTERS_RESAMPLE);
     rhythm_resources_init(&resources);
+    player_controller_init(&player, JOYPAD_PORT_1);
     load_loop(0);
 }
 
@@ -102,7 +104,7 @@ void minigame_loop(float deltatime)
         // temporary to restart loop
         if ((btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_START)) {
             track_reset(&track);
-            player_reset(&player);
+            player_reset(&player.player, &track);
             static_overlay_reset(&static_overlay);
         }
     }
@@ -124,7 +126,7 @@ void minigame_loop(float deltatime)
     }
 
     track_update(&track, deltatime);
-    player_update(&player);
+    player_update(&player.player);
     static_overlay_tick(&static_overlay, deltatime);
 
     rdpq_detach_show();
@@ -150,9 +152,9 @@ void load_loop(int index) {
     const LoopInfo* loop = &loops[index];
 
     track_init(&track, 1, loop->wav_file, loop->simfile, DEFAULT_INDICATOR_LIFETIME);
-    player_init(&player, &track);
-    simfile_input_tracker_set_button_to_column_map(&player.input_tracker, loop->column_to_button_map, SIMFILE_DEFAULT_COLUMN_COUNT);
-    static_overlay_init(&static_overlay, loop, &track, &player, &resources);
+    player_reset(&player.player, &track);
+    simfile_input_tracker_set_button_to_column_map(&player.player.input_tracker, loop->column_to_button_map, SIMFILE_DEFAULT_COLUMN_COUNT);
+    static_overlay_init(&static_overlay, loop, &track, &player.player, &resources);
 
     current_loop = index;
 }

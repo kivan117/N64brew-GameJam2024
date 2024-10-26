@@ -14,19 +14,13 @@ void track_unload(Track* track) {
     mixer_ch_stop(track->mixer_channel);
     wav64_close(&track->audio_file);
     simfile_uninit(&track->simfile);
-    debugf("track unload\n");
 }
 
 void track_update(Track* track, float time) {
     simfile_playback_update(&track->playback, time);
 
-    if (!simfile_playback_finished(&track->playback) && !mixer_ch_playing(track->mixer_channel)) {
-        debugf("simfile update: %f\n", track->playback.current_time);
-    }
-
-    // TODO: do we need to do some sort of sync here? if playbacktime is greader than 0?
     if (!simfile_playback_finished(&track->playback) && track->playback.current_time >= 0 && !mixer_ch_playing(track->mixer_channel)) {
-        debugf("start playing track!!\n");
+        track->playback.current_time = 0.0f; // sync the playback time with the start of the audio track
         wav64_play(&track->audio_file, track->mixer_channel);
     }
 }

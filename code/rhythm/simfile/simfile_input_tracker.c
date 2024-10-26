@@ -20,13 +20,12 @@ static const SimfileInputTrackerButton default_button_to_column_map[SIMFILE_DEFA
     SIMFILE_INPUT_TRACKER_BUTTON_A, SIMFILE_INPUT_TRACKER_BUTTON_B, SIMFILE_INPUT_TRACKER_BUTTON_L, SIMFILE_INPUT_TRACKER_BUTTON_R
 };
 
-void simfile_input_tracker_init(SimfileInputTracker* tracker, const SimfilePlayback* context, const SimfileInputTrackerInterface* input_interface){
-    tracker->context = context;
+void simfile_input_tracker_init(SimfileInputTracker* tracker, const SimfileInputTrackerInterface* input_interface){
+    
     memcpy(&tracker->input_interface, input_interface, sizeof(SimfileInputTrackerInterface));
     memcpy(tracker->time_windows, default_time_windows, sizeof(default_time_windows));
 
     simfile_input_tracker_set_button_to_column_map(tracker, default_button_to_column_map, SIMFILE_DEFAULT_COLUMN_COUNT);
-    simfile_input_tracker_reset(tracker);
 }
 
 void simfile_input_tracker_set_button_to_column_map(SimfileInputTracker* tracker, const SimfileInputTrackerButton* default_button_to_column_map, uint32_t count) {
@@ -35,7 +34,8 @@ void simfile_input_tracker_set_button_to_column_map(SimfileInputTracker* tracker
     tracker->column_count = count;
 }
 
-void simfile_input_tracker_reset(SimfileInputTracker* tracker) {
+void simfile_input_tracker_reset(SimfileInputTracker* tracker, const SimfilePlayback* playback) {
+    tracker->playback = playback;
     tracker->event_index = 0;
     simfile_ring_buffer_init(&tracker->event_buffer);
 }
@@ -59,7 +59,7 @@ static SimfileInputTrackerResultType simfile_input_tracker_update_tap_event(Simf
     for (uint32_t r = 0; r < INPUT_TRACKER_RESULT_COUNT; r++) {
         float event_min = current_event->time - tracker->time_windows[r];
         float event_max = current_event->time + tracker->time_windows[r];
-        if ( tracker->context->current_time >= event_min && tracker->context->current_time <= event_max) {
+        if ( tracker->playback->current_time >= event_min && tracker->playback->current_time <= event_max) {
             // flip the bit for this column
             tracker->event_column_mask |= (1 << column);
 
@@ -84,7 +84,7 @@ SimfileInputTrackerResult simfile_input_tracker_update(SimfileInputTracker* trac
 
     // are we too early to process this event?
     const float min_time = current_event->time - tracker->time_windows[INPUT_TRACKER_RESULT_BOO];
-    if (tracker->context->current_time < min_time) {
+    if (tracker->playback->current_time < min_time) {
         return result;
     }
 
@@ -98,7 +98,7 @@ SimfileInputTrackerResult simfile_input_tracker_update(SimfileInputTracker* trac
 
     const float miss_time = next_event_min_time < current_event_max_time ? next_event_min_time: current_event_max_time;
 
-    if (tracker->context->current_time >current_event->time && tracker->context->current_time >= miss_time) {
+    if (tracker->playback->current_time >current_event->time && tracker->playback->current_time >= miss_time) {
         result.type = INPUT_TRACKER_RESULT_MISS;
         simfile_input_current_event_complete(tracker);
         return result;

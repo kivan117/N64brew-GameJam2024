@@ -47,8 +47,11 @@ typedef struct {
     void* callback_arg;
 } SimfileInputTrackerInterface;
 
+/**
+ * Tracks input and computes event results for a single player
+ */
 typedef struct {
-    const SimfilePlayback* context;
+    const SimfilePlayback* playback;
     float time_windows[INPUT_TRACKER_RESULT_COUNT];
     // TODO: Rename this column to button map?
     SimfileInputTrackerButton button_to_column_map[SIMFILE_MAX_COLUMN_COUNT];
@@ -64,11 +67,14 @@ typedef struct {
     uint8_t event_column_mask;
 } SimfileInputTracker;
 
-void simfile_input_tracker_init(SimfileInputTracker* tracker, const SimfilePlayback* context, const SimfileInputTrackerInterface* input_interface);
+/** Initializes the timing windows and the input interface. */
+void simfile_input_tracker_init(SimfileInputTracker* tracker, const SimfileInputTrackerInterface* input_interface);
+
+/** Ensure this is called before \ref simfile_input_tracker_update */
+void simfile_input_tracker_reset(SimfileInputTracker* tracker, const SimfilePlayback* playback);
 
 /** Ensure that this method is called _after_ simfile_playback_update */
 SimfileInputTrackerResult simfile_input_tracker_update(SimfileInputTracker* tracker);
 void simfile_input_tracker_enqueue(SimfileInputTracker* tracker, const SimfileEvent* event);
 void simfile_input_tracker_set_button_to_column_map(SimfileInputTracker* tracker, const SimfileInputTrackerButton* default_button_to_column_map, uint32_t count);
 
-void simfile_input_tracker_reset(SimfileInputTracker* tracker);
