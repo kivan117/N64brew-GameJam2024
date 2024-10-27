@@ -78,3 +78,4 @@ SimfileInputTrackerResult simfile_input_tracker_update(SimfileInputTracker* trac
 void simfile_input_tracker_enqueue(SimfileInputTracker* tracker, const SimfileEvent* event);
 void simfile_input_tracker_set_button_to_column_map(SimfileInputTracker* tracker, const SimfileInputTrackerButton* default_button_to_column_map, uint32_t count);
 
+#define simfile_input_tracker_get_current_event(tracker) (simfile_event_buffer_front(&(tracker)->event_buffer))

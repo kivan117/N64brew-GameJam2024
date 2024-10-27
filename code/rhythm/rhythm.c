@@ -154,7 +154,7 @@ void load_loop(int index) {
     track_init(&track, 1, loop->wav_file, loop->simfile, DEFAULT_INDICATOR_LIFETIME);
     players_reset(&players, &track);
     //simfile_input_tracker_set_button_to_column_map(&player.player.input_tracker, loop->column_to_button_map, SIMFILE_DEFAULT_COLUMN_COUNT);
-    static_overlay_init(&static_overlay, loop, &track, &players.players[0].base, &resources);
+    static_overlay_init(&static_overlay, loop, &track, &players.players[1].base, &resources);
 
     current_loop = index;
 }
