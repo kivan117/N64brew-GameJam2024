@@ -7,6 +7,7 @@
 #include "simfile/simfile_input_tracker.h"
 
 #include "static_overlay.h"
+#include "stats_overlay.h"
 #include "resources.h"
 #include "track.h"
 #include "players.h"
@@ -27,6 +28,7 @@ RhythmResources resources;
 Track track;
 Players players;
 StaticOverlay static_overlay;
+StatsOverlay stats_overlay;
 
 #define LOOP_COUNT 3
 static const LoopInfo loops[LOOP_COUNT] = {
@@ -65,6 +67,7 @@ void minigame_init()
     display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, FILTERS_RESAMPLE);
     rhythm_resources_init(&resources);
     players_init(&players);
+    stats_overlay_init(&stats_overlay, &players, resources.fonts[RHYTHM_FONT_EVENT_RESULT], rhythm_resources_get_font_id(resources, RHYTHM_FONT_EVENT_RESULT));
     load_loop(0);
 }
 
@@ -129,6 +132,7 @@ void minigame_loop(float deltatime)
     track_update(&track, deltatime);
     players_update(&players);
     static_overlay_tick(&static_overlay, deltatime);
+    stats_overlay_draw(&stats_overlay);
 
     rdpq_detach_show();
 }

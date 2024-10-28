@@ -7,6 +7,7 @@
 #include <string.h>
 
 // https://www.reddit.com/r/DanceDanceRevolution/comments/4ay7kh/marvelousperfect_timing_windows/
+// https://remywiki.com/DanceDanceRevolution_Scoring_System
 static const float default_time_windows[INPUT_TRACKER_RESULT_COUNT] = {
     // Stepmaina time in ms
     // 21.5f, 43.0f, 102.0f, 135.0f, 180.0f

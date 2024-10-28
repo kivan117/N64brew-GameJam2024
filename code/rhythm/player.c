@@ -1,5 +1,6 @@
 #include "player.h"
 
+#include <string.h>
 
 static void player_next_event_func(const SimfileEvent* event, void* arg);
 
@@ -7,6 +8,7 @@ void player_init(Player* player, PlayerType type, const SimfileInputTrackerInter
     player->type = type;
     simfile_input_tracker_init(&player->input_tracker, input_interface);
     // TODO: initialize color , stats, etc
+    memset(player->result_totals, 0, sizeof(player->result_totals));
 }
 
 void player_load_track(Player* player, Track* track) {
@@ -17,7 +19,7 @@ void player_load_track(Player* player, Track* track) {
 
 void player_update(Player* player) {
     player->current_result = simfile_input_tracker_update(&player->input_tracker);
-
+    player->result_totals[player->current_result.type] += 1;
     // TODO: score, combo, etc
 }
 

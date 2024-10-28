@@ -17,7 +17,6 @@ typedef struct {
     Track* track;
     Player* player;
 
-    NoteResults note_results;
     ButtonOverlay button_overlay;
     Indicators indicators;
 } StaticOverlay;

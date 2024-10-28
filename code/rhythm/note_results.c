@@ -66,6 +66,7 @@ void note_results_draw(NoteResults* note_results) {
         switch(note_result->type) {
             case INPUT_TRACKER_RESULT_NONE:
             case INPUT_TRACKER_RESULT_COUNT:
+            case INPUT_TRACKER_RESULT_NUM_OPTIONS:
                 break; // should not happen
 
             case INPUT_TRACKER_RESULT_MARVELOUS:

@@ -31,8 +31,9 @@ typedef enum {
 
     INPUT_TRACKER_RESULT_COUNT,
 
-    INPUT_TRACKER_RESULT_NONE,
     INPUT_TRACKER_RESULT_MISS,
+    INPUT_TRACKER_RESULT_NONE,
+    INPUT_TRACKER_RESULT_NUM_OPTIONS
 } SimfileInputTrackerResultType;
 
 typedef struct {

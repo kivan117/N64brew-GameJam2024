@@ -13,6 +13,8 @@ typedef struct {
     SimfileInputTracker input_tracker;
     SimfileInputTrackerResult current_result;
 
+    uint32_t result_totals[INPUT_TRACKER_RESULT_NUM_OPTIONS];
+
     // score
     // combo
     // others?
