@@ -17,7 +17,6 @@ void stats_overlay_init(StatsOverlay* overlay, const Players* players, rdpq_font
 static const char* format_str = 
     "Player %i\n"
     "%s\n"
-    "Ma: %lu\n"
     "Pe: %lu\n"
     "Gr: %lu\n"
     "Go: %lu\n"
@@ -39,7 +38,6 @@ void stats_overlay_draw(StatsOverlay* overlay) {
         sprintf(buffer, format_str, 
             i + 1,
             info_str,
-            player->result_totals[INPUT_TRACKER_RESULT_MARVELOUS],
             player->result_totals[INPUT_TRACKER_RESULT_PERFECT],
             player->result_totals[INPUT_TRACKER_RESULT_GREAT],
             player->result_totals[INPUT_TRACKER_RESULT_GOOD],

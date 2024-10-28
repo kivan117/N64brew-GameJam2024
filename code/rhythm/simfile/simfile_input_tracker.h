@@ -23,7 +23,6 @@ typedef enum {
 } SimfileInputTrackerButton;
 
 typedef enum {
-    INPUT_TRACKER_RESULT_MARVELOUS,
     INPUT_TRACKER_RESULT_PERFECT,
     INPUT_TRACKER_RESULT_GREAT,
     INPUT_TRACKER_RESULT_GOOD,

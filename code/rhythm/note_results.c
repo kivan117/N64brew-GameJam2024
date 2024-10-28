@@ -69,10 +69,6 @@ void note_results_draw(NoteResults* note_results) {
             case INPUT_TRACKER_RESULT_NUM_OPTIONS:
                 break; // should not happen
 
-            case INPUT_TRACKER_RESULT_MARVELOUS:
-                message = "Marvelous";
-                break;
-
             case INPUT_TRACKER_RESULT_PERFECT:
                 message = "Perfect";
                 break;

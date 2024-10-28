@@ -6,27 +6,27 @@
 #define PLAYER_AI_MISS_NEXT_EVENT (3600.0f)
 
 static const float ai_easy_weights[INPUT_TRACKER_RESULT_COUNT] = {
-    0.10f, // marvelous
-    0.10f, //perfect 
+    0.15f, //perfect 
     0.25f, // great
     0.25f, // good
     0.15f, // boo
+    // 0.20 miss
 };
 
 static const float ai_medium_weights[INPUT_TRACKER_RESULT_COUNT] = {
-    0.20f, // marvelous
     0.25f, //perfect 
-    0.25f, // great
-    0.10f, // good
+    0.35f, // great
+    0.15f, // good
     0.10f, // boo
+    // 0.15 miss
 };
 
 static const float ai_hard_weights[INPUT_TRACKER_RESULT_COUNT] = {
-    0.40f, // marvelous
-    0.30f, //perfect 
-    0.15f, // great
+    0.60f, //perfect 
+    0.25f, // great
     0.05f, // good
     0.05f, // boo
+    // 0.05 miss
 };
 
 static int player_ai_controller_get_button_pressed(int button, void* arg);

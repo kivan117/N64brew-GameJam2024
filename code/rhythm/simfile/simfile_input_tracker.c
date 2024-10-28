@@ -12,9 +12,12 @@ static const float default_time_windows[INPUT_TRACKER_RESULT_COUNT] = {
     // Stepmaina time in ms
     // 21.5f, 43.0f, 102.0f, 135.0f, 180.0f
 
-    // Stepmaina time in seconds
-    0.0215f, 0.043f, 0.102f, 0.135f, 0.180f // hard / medium?
+    // Stepmaina time in seconds (includes marvelous)
+    // 0.0215f, 0.043f, 0.102f, 0.135f, 0.180f // hard / medium?
     //0.064f, 0.096f, 0.204f, 0.270f, 0.360f // medium / easy?
+
+    // ddr times without marvelous
+    0.043f, 0.102f, 0.135f, 0.180f
 };
 
 static const SimfileInputTrackerButton default_button_to_column_map[SIMFILE_DEFAULT_COLUMN_COUNT] = {
