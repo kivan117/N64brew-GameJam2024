@@ -6,6 +6,13 @@ static void player_next_event_func(const SimfileEvent* event, void* arg);
 void player_init(Player* player, PlayerType type, const SimfileInputTrackerInterface* input_interface) {
     player->type = type;
     simfile_input_tracker_init(&player->input_tracker, input_interface);
+    // TODO: initialize color , stats, etc
+}
+
+void player_load_track(Player* player, Track* track) {
+    simfile_input_tracker_reset(&player->input_tracker);
+    simfile_playback_push_callback(&track->playback, player_next_event_func, player);
+    simfile_input_tracker_set_track(&player->input_tracker, track);
 }
 
 void player_update(Player* player) {
@@ -14,9 +21,8 @@ void player_update(Player* player) {
     // TODO: score, combo, etc
 }
 
-void player_reset(Player* player, Track* track) {
-    simfile_input_tracker_reset(&player->input_tracker, &track->playback);
-    simfile_playback_push_callback(&track->playback, player_next_event_func, player);
+void player_reset(Player* player) {
+    simfile_input_tracker_reset(&player->input_tracker);
 }
 
 // triggered when the next event from the simfile context is triggered

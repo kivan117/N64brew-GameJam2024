@@ -2,12 +2,17 @@
 
 void track_init(Track* track, int mixer_channel, const char* audio_file_asset, const char* simfile_asset, float event_lifetime) {
     track->mixer_channel = mixer_channel;
+    track->started = 0;
     simfile_init(&track->simfile);
 
     wav64_open(&track->audio_file, audio_file_asset);
     simfile_open(&track->simfile, simfile_asset);
     simfile_playback_init(&track->playback, &track->simfile, event_lifetime);
     debugf("track_init: %s\n", audio_file_asset);
+}
+
+void track_start(Track* track) {
+    track->started = 1;
 }
 
 void track_unload(Track* track) {
@@ -17,6 +22,10 @@ void track_unload(Track* track) {
 }
 
 void track_update(Track* track, float time) {
+    if (!track->started) {
+        return;
+    }
+
     simfile_playback_update(&track->playback, time);
 
     if (!simfile_playback_finished(&track->playback) && track->playback.current_time >= 0 && !mixer_ch_playing(track->mixer_channel)) {

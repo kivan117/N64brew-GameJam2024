@@ -52,6 +52,7 @@ typedef struct {
  */
 typedef struct {
     const SimfilePlayback* playback;
+    int debug_handle;
     float time_windows[INPUT_TRACKER_RESULT_COUNT];
     // TODO: Rename this column to button map?
     SimfileInputTrackerButton button_to_column_map[SIMFILE_MAX_COLUMN_COUNT];
@@ -71,11 +72,12 @@ typedef struct {
 void simfile_input_tracker_init(SimfileInputTracker* tracker, const SimfileInputTrackerInterface* input_interface);
 
 /** Ensure this is called before \ref simfile_input_tracker_update */
-void simfile_input_tracker_reset(SimfileInputTracker* tracker, const SimfilePlayback* playback);
+void simfile_input_tracker_reset(SimfileInputTracker* tracker);
 
 /** Ensure that this method is called _after_ simfile_playback_update */
 SimfileInputTrackerResult simfile_input_tracker_update(SimfileInputTracker* tracker);
 void simfile_input_tracker_enqueue(SimfileInputTracker* tracker, const SimfileEvent* event);
 void simfile_input_tracker_set_button_to_column_map(SimfileInputTracker* tracker, const SimfileInputTrackerButton* default_button_to_column_map, uint32_t count);
 
+#define simfile_input_tracker_set_track(tracker, track) ((tracker)->playback = &((track)->playback))
 #define simfile_input_tracker_get_current_event(tracker) (simfile_event_buffer_front(&(tracker)->event_buffer))

@@ -34,8 +34,7 @@ void simfile_input_tracker_set_button_to_column_map(SimfileInputTracker* tracker
     tracker->column_count = count;
 }
 
-void simfile_input_tracker_reset(SimfileInputTracker* tracker, const SimfilePlayback* playback) {
-    tracker->playback = playback;
+void simfile_input_tracker_reset(SimfileInputTracker* tracker) {
     tracker->event_index = 0;
     simfile_ring_buffer_init(&tracker->event_buffer);
 }
@@ -65,6 +64,7 @@ static SimfileInputTrackerResultType simfile_input_tracker_update_tap_event(Simf
 
             // did we complete the event?
             if (tracker->event_column_mask == current_event->columns) {
+                debugf("simfile_input_current_event_complete\n");
                 simfile_input_current_event_complete(tracker);
                 return (SimfileInputTrackerResultType)r;
             }
@@ -100,6 +100,10 @@ SimfileInputTrackerResult simfile_input_tracker_update(SimfileInputTracker* trac
 
     if (tracker->playback->current_time >current_event->time && tracker->playback->current_time >= miss_time) {
         result.type = INPUT_TRACKER_RESULT_MISS;
+        if (tracker->debug_handle == 1) {
+            debugf("simfile_input_tracker_update: event missed\n");
+        }
+        
         simfile_input_current_event_complete(tracker);
         return result;
     }

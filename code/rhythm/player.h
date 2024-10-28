@@ -18,10 +18,19 @@ typedef struct {
     // others?
 } Player;
 
-/** Note: Input interface is copied and does not need to exist beyond the call to this function. */
+/** 
+ * This method creates a new player and should be called once per game
+ * Note: Input interface is copied and does not need to exist beyond the call to this function. 
+ * */
 void player_init(Player* player, PlayerType type, const SimfileInputTrackerInterface* input_interface);
 
-/** Note this needs to be called after the track is reloaded and before any call to \ref player_update */
-void player_reset(Player* player, Track* track);
+/**
+ * This method sets up playback callbacks for the input tracker ans should be called every time a new track is loaded.
+ * This method will implicitly call \ref player_reset
+ */
+void player_load_track(Player* player, Track* track);
+
+/** Call this method when the current track is reset*/
+void player_reset(Player* player);
 
 void player_update(Player* player);

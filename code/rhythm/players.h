@@ -15,5 +15,7 @@ typedef struct {
 } Players;
 
 void players_init(Players* p);
+void players_load_track(Players* p, Track* track);
+void players_reset(Players* p);
 void players_update(Players* p);
-void players_reset(Players* p, Track* track);
+

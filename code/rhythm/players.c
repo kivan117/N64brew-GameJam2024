@@ -16,12 +16,22 @@ void players_init(Players* p) {
     }
 }
 
-void players_reset(Players* p, Track* track) {
+void players_load_track(Players* p, Track* track) {
     for (int i = 0; i < 4; i++) {
         if (p->players[i].type == PLAYER_TYPE_AI) {
-            player_ai_reset(&p->players[i].ai, track);
+            player_ai_load_track(&p->players[i].ai, track);
         } else {
-            player_reset(&p->players[i].base, track);
+            player_load_track(&p->players[i].base, track);
+        }
+    }
+}
+
+void players_reset(Players* p) {
+    for (int i = 0; i < 4; i++) {
+        if (p->players[i].type == PLAYER_TYPE_AI) {
+            player_ai_reset(&p->players[i].ai);
+        } else {
+            player_reset(&p->players[i].base);
         }
     }
 }

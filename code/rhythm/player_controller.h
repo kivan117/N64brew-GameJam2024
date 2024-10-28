@@ -5,7 +5,7 @@
 
 /** This struct represnets a player that is controlled by a controller */
 typedef struct {
-    Player player;
+    Player base;
     uint32_t port;
 } PlayerController;
 

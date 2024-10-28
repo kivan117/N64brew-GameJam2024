@@ -9,12 +9,14 @@
 typedef struct {
     wav64_t audio_file;
     int mixer_channel;
+    int started;
 
     Simfile simfile;
     SimfilePlayback playback;
 } Track;
 
 void track_init(Track* track, int mixer_channel, const char* audio_file_asset, const char* simfile_asset, float event_lifetime);
+void track_start(Track* track);
 void track_update(Track* track, float time);
 void track_reset(Track* track);
 void track_unload(Track* track);

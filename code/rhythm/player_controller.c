@@ -5,7 +5,8 @@ static int player_controller_get_button_pressed(int button, void* arg);
 void player_controller_init(PlayerController* player, uint32_t port) {
     player->port = port;
     SimfileInputTrackerInterface input_interface = {player_controller_get_button_pressed, player};
-    player_init(&player->player, PLAYER_TYPE_CONTROLLER, &input_interface);
+    player_init(&player->base, PLAYER_TYPE_CONTROLLER, &input_interface);
+    player->base.input_tracker.debug_handle = PLAYER_TYPE_CONTROLLER;
 }
 
 int player_controller_get_button_pressed(int button, void* arg) {

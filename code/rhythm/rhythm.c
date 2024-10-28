@@ -95,17 +95,18 @@ void minigame_loop(float deltatime)
 
     joypad_buttons_t btn = joypad_get_buttons_pressed(0);
 
-    if (btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_DPAD_UP) {
-        background_color = 0x00FF00FF;
-    }
+    if ((btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_START)) {
+        if (!track.started) {
+            debugf("start track\n");
+            track_start(&track);
+        }
 
-    // if the song is finished restart it
-    if (simfile_playback_finished(&track.playback)) {
-        // temporary to restart loop
-        if ((btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_START)) {
+        // if the song is finished restart it
+        if (simfile_playback_finished(&track.playback)) {
             track_reset(&track);
-            players_reset(&players, &track);
+            players_reset(&players);
             static_overlay_reset(&static_overlay);
+            
         }
     }
 
@@ -152,9 +153,9 @@ void load_loop(int index) {
     const LoopInfo* loop = &loops[index];
 
     track_init(&track, 1, loop->wav_file, loop->simfile, DEFAULT_INDICATOR_LIFETIME);
-    players_reset(&players, &track);
+    players_load_track(&players, &track);
     //simfile_input_tracker_set_button_to_column_map(&player.player.input_tracker, loop->column_to_button_map, SIMFILE_DEFAULT_COLUMN_COUNT);
-    static_overlay_init(&static_overlay, loop, &track, &players.players[1].base, &resources);
+    static_overlay_init(&static_overlay, loop, &track, &players.players[3].base, &resources);
 
     current_loop = index;
 }

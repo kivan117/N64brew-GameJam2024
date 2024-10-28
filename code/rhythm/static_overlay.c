@@ -27,6 +27,7 @@ void static_overlay_uninit(StaticOverlay* overlay) {
 void static_overlay_tick(StaticOverlay* overlay, float deltatime) {
     const SimfileInputTrackerResult* player_result = &overlay->player->current_result;
     if (player_result->type <= INPUT_TRACKER_RESULT_BOO) {
+        debugf("static overlay: note_results_push : result: %u event: %lu\n", player_result->type, player_result->event_index);
         ButtonOverlayItem* overlay_item = &overlay->button_overlay.overlay_items[player_result->event_index];
         note_results_push(&overlay->note_results, overlay_item->cx, overlay_item->cy, player_result->type);
     }

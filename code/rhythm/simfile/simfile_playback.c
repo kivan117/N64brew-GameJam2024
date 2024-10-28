@@ -25,6 +25,7 @@ void simfile_playback_push_callback(SimfilePlayback* playback, SimfilePlaybackEv
 void simfile_playback_update(SimfilePlayback* playback, float time) {
     // the song itself has finished// nothing to do
     if (playback->current_time >= playback->simfile->total_time) {
+        playback->current_time = playback->simfile->total_time;
         return;
     }
 
