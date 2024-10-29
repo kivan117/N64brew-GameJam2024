@@ -45,3 +45,9 @@ void players_update(Players* p) {
         }
     }
 }
+
+void players_set_input_buttons(Players* p, const SimfileInputTrackerButton* button_to_column_map, uint32_t count) {
+    for (int i = 0; i < 4; i++) {
+        simfile_input_tracker_set_button_to_column_map(&p->players[i].base.input_tracker, button_to_column_map, count);
+    }
+}

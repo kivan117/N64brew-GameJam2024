@@ -11,6 +11,7 @@
 #include "resources.h"
 #include "track.h"
 #include "players.h"
+#include "event_stream.h"
 
 #include <string.h>
 
@@ -158,7 +159,7 @@ void load_loop(int index) {
 
     track_init(&track, 1, loop->wav_file, loop->simfile, DEFAULT_INDICATOR_LIFETIME);
     players_load_track(&players, &track);
-    //simfile_input_tracker_set_button_to_column_map(&player.player.input_tracker, loop->column_to_button_map, SIMFILE_DEFAULT_COLUMN_COUNT);
+    players_set_input_buttons(&players, loop->column_to_button_map, SIMFILE_DEFAULT_COLUMN_COUNT);
     static_overlay_init(&static_overlay, loop, &track, &players.players[3].base, &resources);
 
     current_loop = index;

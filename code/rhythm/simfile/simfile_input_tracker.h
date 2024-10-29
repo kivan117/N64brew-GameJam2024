@@ -77,7 +77,7 @@ void simfile_input_tracker_reset(SimfileInputTracker* tracker);
 /** Ensure that this method is called _after_ simfile_playback_update */
 SimfileInputTrackerResult simfile_input_tracker_update(SimfileInputTracker* tracker);
 void simfile_input_tracker_enqueue(SimfileInputTracker* tracker, const SimfileEvent* event);
-void simfile_input_tracker_set_button_to_column_map(SimfileInputTracker* tracker, const SimfileInputTrackerButton* default_button_to_column_map, uint32_t count);
+void simfile_input_tracker_set_button_to_column_map(SimfileInputTracker* tracker, const SimfileInputTrackerButton* button_to_column_map, uint32_t count);
 
 #define simfile_input_tracker_set_track(tracker, track) ((tracker)->playback = &((track)->playback))
 #define simfile_input_tracker_get_current_event(tracker) (simfile_event_buffer_front(&(tracker)->event_buffer))
