@@ -2,12 +2,9 @@
 
 #include "resources.h"
 #include "simfile/simfile_playback.h"
+#include "vec2.h"
 
 #include <libdragon.h>
-
-typedef struct {
-    float x, y;
-} Vec2;
 
 typedef struct {
     Vec2 position;

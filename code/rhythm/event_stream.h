@@ -25,6 +25,8 @@ void event_stream_init(EventStream* stream, SimfilePlayback* playback);
  * Adds a new track into the stream.
  * Note: all tracks should be created before playback begins! 
  * */
-void create_track(EventStream* stream, const Vec2* source_pos, const Vec2* target_pos, sprite_t* target_texture, sprite_t* item_texture);
+void event_stream_create_track(EventStream* stream, const Vec2* source_pos, const Vec2* target_pos, sprite_t* item_texture, sprite_t* target_texture);
 
+void event_stream_reset(EventStream* stream);
 void event_stream_update(EventStream* stream, float time_delta);
+void event_stream_draw(EventStream* stream);

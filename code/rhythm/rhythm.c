@@ -6,12 +6,13 @@
 #include "simfile/simfile_playback.h"
 #include "simfile/simfile_input_tracker.h"
 
-#include "static_overlay.h"
+#include "event_stream.h"
+#include "event_results.h"
+#include "loop_info.h"
+#include "players.h"
 #include "stats_overlay.h"
 #include "resources.h"
 #include "track.h"
-#include "players.h"
-#include "event_stream.h"
 
 #include <string.h>
 
@@ -28,8 +29,9 @@ static uint32_t background_color = GAME_BACKGROUND;
 RhythmResources resources;
 Track track;
 Players players;
-StaticOverlay static_overlay;
 StatsOverlay stats_overlay;
+EventStream event_stream;
+EventResults event_results;
 
 #define LOOP_COUNT 3
 static const LoopInfo loops[LOOP_COUNT] = {
@@ -37,21 +39,18 @@ static const LoopInfo loops[LOOP_COUNT] = {
         "Tabloid Junkie",
         "rom:/rhythm/tabloid_junkie.wav64", 
         "rom:/rhythm/tabloid_junkie.csm", 
-        "rom:/rhythm/tabloid_junkie_layout.layout",
         {SIMFILE_INPUT_TRACKER_BUTTON_A, SIMFILE_INPUT_TRACKER_BUTTON_B, SIMFILE_INPUT_TRACKER_BUTTON_L, SIMFILE_INPUT_TRACKER_BUTTON_R}
     },
     {
         "Privacy",
         "rom:/rhythm/privacy.wav64", 
         "rom:/rhythm/privacy.csm", 
-        "rom:/rhythm/privacy_layout.layout",
         {SIMFILE_INPUT_TRACKER_BUTTON_L, SIMFILE_INPUT_TRACKER_BUTTON_R, SIMFILE_INPUT_TRACKER_BUTTON_Z, SIMFILE_INPUT_TRACKER_BUTTON_A}
     },
     {
         "Breaking News",
         "rom:/rhythm/breaking_news.wav64", 
         "rom:/rhythm/breaking_news.csm", 
-        "rom:/rhythm/breaking_news_layout.layout",
         {SIMFILE_INPUT_TRACKER_BUTTON_C_LEFT, SIMFILE_INPUT_TRACKER_BUTTON_C_RIGHT, SIMFILE_INPUT_TRACKER_BUTTON_Z, SIMFILE_INPUT_TRACKER_BUTTON_A}
     }
 };
@@ -68,7 +67,8 @@ void minigame_init()
     display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, FILTERS_RESAMPLE);
     rhythm_resources_init(&resources);
     players_init(&players);
-    stats_overlay_init(&stats_overlay, &players, resources.fonts[RHYTHM_FONT_EVENT_RESULT], rhythm_resources_get_font_id(resources, RHYTHM_FONT_EVENT_RESULT));
+    event_results_init(&event_results, &players, resources.fonts[RHYTHM_FONT_SQUAREWAVE], rhythm_resources_get_font_id(&resources, RHYTHM_FONT_SQUAREWAVE));
+    stats_overlay_init(&stats_overlay, &players, resources.fonts[RHYTHM_FONT_BUILTIN], rhythm_resources_get_font_id(resources, RHYTHM_FONT_BUILTIN));
     load_loop(0);
 }
 
@@ -109,8 +109,8 @@ void minigame_loop(float deltatime)
         if (simfile_playback_finished(&track.playback)) {
             track_reset(&track);
             players_reset(&players);
-            static_overlay_reset(&static_overlay);
-            
+            event_stream_reset(&event_stream);
+            event_results_reset(&event_results);
         }
     }
 
@@ -131,9 +131,13 @@ void minigame_loop(float deltatime)
     }
 
     track_update(&track, deltatime);
+    event_stream_update(&event_stream, deltatime);
+    event_results_update(&event_results, deltatime);
     players_update(&players);
-    static_overlay_tick(&static_overlay, deltatime);
+    event_stream_draw(&event_stream);
+    event_results_draw(&event_results);
     stats_overlay_draw(&stats_overlay);
+    
 
     rdpq_detach_show();
 }
@@ -145,22 +149,31 @@ void minigame_loop(float deltatime)
 void minigame_cleanup()
 {
     track_unload(&track);
-    static_overlay_uninit(&static_overlay);
     rhythm_resources_uninit(&resources);
 }
 
 void load_loop(int index) {
     if (current_loop >= 0) {
         track_unload(&track);
-        static_overlay_uninit(&static_overlay);
     }
 
     const LoopInfo* loop = &loops[index];
 
-    track_init(&track, 1, loop->wav_file, loop->simfile, DEFAULT_INDICATOR_LIFETIME);
+    track_init(&track, 1, loop->wav_file, loop->simfile, 0.75);
     players_load_track(&players, &track);
     players_set_input_buttons(&players, loop->column_to_button_map, SIMFILE_DEFAULT_COLUMN_COUNT);
-    static_overlay_init(&static_overlay, loop, &track, &players.players[3].base, &resources);
+    event_results_reset(&event_results);
+    
+    // create a track for each column...setting the appropriate sprite
+    // in this case each track has the same positions
+    const Vec2 start_pos = {350.0f, 40.0f};
+    const Vec2 target_pos = {160.0f, 40.0f};
+    event_stream_init(&event_stream, &track.playback);
+    for (int i = 0; i < SIMFILE_DEFAULT_COLUMN_COUNT; i++) {
+        sprite_t* button_sprite = rhythm_resources_get_sprite_for_button(&resources, loop->column_to_button_map[i]);
+        sprite_t* target_sprite = i == 0 ? resources.sprites[RHYTHM_SPRITE_INDICATOR] : (sprite_t*)NULL;
+        event_stream_create_track(&event_stream, &start_pos, &target_pos, button_sprite, target_sprite);
+    }
 
     current_loop = index;
 }

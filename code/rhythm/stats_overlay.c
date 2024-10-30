@@ -5,13 +5,6 @@
 void stats_overlay_init(StatsOverlay* overlay, const Players* players, rdpq_font_t* font, uint8_t font_id) {
     overlay->players = players;
     overlay->font_id = font_id;
-
-    // create a style for each player with their color
-    rdpq_font_style(font, 0, &(rdpq_fontstyle_t){.color = color_from_packed32(0xFF0000FF) });
-    rdpq_font_style(font, 1, &(rdpq_fontstyle_t){.color = color_from_packed32(0x00FF00FF) });
-    rdpq_font_style(font, 2, &(rdpq_fontstyle_t){.color = color_from_packed32(0x0000FFFF) });
-    rdpq_font_style(font, 3, &(rdpq_fontstyle_t){.color = color_from_packed32(0xFFFF00FF) });
-    rdpq_font_style(font, 4, &(rdpq_fontstyle_t){.color = color_from_packed32(0xFFFFFFFF) });
 }
 
 static const char* format_str = 
