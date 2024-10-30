@@ -9,8 +9,6 @@ void event_track_init(EventTrack* track, const Vec2* source_pos, const Vec2* tar
     track->item_texture = item_texture;
     track->target_texture = target_texture;
 
-    debugf("event_track_init target: %f, %f, %i\n", track->target_pos.x, track->target_pos.y, track->target_texture != 0);
-
     // calclulate the normalized direction vector that all items in this track will move on.
     track->direction.x = target_pos->x - source_pos->x;
     track->direction.y = target_pos->y - source_pos->y;

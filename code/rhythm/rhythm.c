@@ -33,7 +33,7 @@ StatsOverlay stats_overlay;
 EventStream event_stream;
 EventResults event_results;
 
-#define LOOP_COUNT 3
+#define LOOP_COUNT 4
 static const LoopInfo loops[LOOP_COUNT] = {
     {
         "Tabloid Junkie",
@@ -52,6 +52,12 @@ static const LoopInfo loops[LOOP_COUNT] = {
         "rom:/rhythm/breaking_news.wav64", 
         "rom:/rhythm/breaking_news.csm", 
         {SIMFILE_INPUT_TRACKER_BUTTON_C_LEFT, SIMFILE_INPUT_TRACKER_BUTTON_C_RIGHT, SIMFILE_INPUT_TRACKER_BUTTON_Z, SIMFILE_INPUT_TRACKER_BUTTON_A}
+    },
+    {
+        "Screenbreaker",
+        "rom:/rhythm/screenbreaker.wav64", 
+        "rom:/rhythm/screenbreaker.csm", 
+        {SIMFILE_INPUT_TRACKER_BUTTON_DPAD_UP, SIMFILE_INPUT_TRACKER_BUTTON_DPAD_DOWN, SIMFILE_INPUT_TRACKER_BUTTON_DPAD_LEFT, SIMFILE_INPUT_TRACKER_BUTTON_DPAD_RIGHT}
     }
 };
 
@@ -67,7 +73,7 @@ void minigame_init()
     display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, FILTERS_RESAMPLE);
     rhythm_resources_init(&resources);
     players_init(&players);
-    event_results_init(&event_results, &players, resources.fonts[RHYTHM_FONT_SQUAREWAVE], rhythm_resources_get_font_id(&resources, RHYTHM_FONT_SQUAREWAVE));
+    event_results_init(&event_results, &players, resources.fonts[RHYTHM_FONT_BUILTIN], rhythm_resources_get_font_id(&resources, RHYTHM_FONT_BUILTIN));
     stats_overlay_init(&stats_overlay, &players, resources.fonts[RHYTHM_FONT_BUILTIN], rhythm_resources_get_font_id(resources, RHYTHM_FONT_BUILTIN));
     load_loop(0);
 }
@@ -97,11 +103,12 @@ void minigame_loop(float deltatime)
     rdpq_set_mode_standard();
     rdpq_mode_alphacompare(1);
 
-    joypad_buttons_t btn = joypad_get_buttons_pressed(0);
+    joypad_buttons_t btn_down = joypad_get_buttons_held(0);
+    joypad_buttons_t btn_pressed = joypad_get_buttons_pressed(0);
 
-    if ((btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_START)) {
+    if ((btn_pressed.raw & SIMFILE_INPUT_TRACKER_BUTTON_START)) {
         if (!track.started) {
-            debugf("start track\n");
+            //debugf("start track\n");
             track_start(&track);
         }
 
@@ -114,20 +121,23 @@ void minigame_loop(float deltatime)
         }
     }
 
-    if (btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_DPAD_RIGHT) {
-        current_loop += 1;
-        if (current_loop == LOOP_COUNT) {
-            current_loop = 0;
+    // temp loop navigation
+    if (btn_down.raw & SIMFILE_INPUT_TRACKER_BUTTON_Z) {
+        if (btn_pressed.raw & SIMFILE_INPUT_TRACKER_BUTTON_DPAD_RIGHT) {
+            current_loop += 1;
+            if (current_loop == LOOP_COUNT) {
+                current_loop = 0;
+            }
+            load_loop(current_loop);
         }
-        load_loop(current_loop);
-    }
 
-    if (btn.raw & SIMFILE_INPUT_TRACKER_BUTTON_DPAD_LEFT) {
-        current_loop -= 1;
-        if (current_loop < 0) {
-            current_loop = LOOP_COUNT - 1;
+        if (btn_pressed.raw & SIMFILE_INPUT_TRACKER_BUTTON_DPAD_LEFT) {
+            current_loop -= 1;
+            if (current_loop < 0) {
+                current_loop = LOOP_COUNT - 1;
+            }
+            load_loop(current_loop);
         }
-        load_loop(current_loop);
     }
 
     track_update(&track, deltatime);
@@ -137,6 +147,10 @@ void minigame_loop(float deltatime)
     event_stream_draw(&event_stream);
     event_results_draw(&event_results);
     stats_overlay_draw(&stats_overlay);
+
+    rdpq_text_printf(&(rdpq_textparms_t){
+        .width = display_get_width(), .align = ALIGN_CENTER, .style_id = 4
+    }, rhythm_resources_get_font_id(&resources, RHYTHM_FONT_TITLE), 0 ,30, loops[current_loop].name);
     
 
     rdpq_detach_show();
@@ -166,8 +180,8 @@ void load_loop(int index) {
     
     // create a track for each column...setting the appropriate sprite
     // in this case each track has the same positions
-    const Vec2 start_pos = {350.0f, 40.0f};
-    const Vec2 target_pos = {160.0f, 40.0f};
+    const Vec2 start_pos = {350.0f, 60.0f};
+    const Vec2 target_pos = {160.0f, 60.0f};
     event_stream_init(&event_stream, &track.playback);
     for (int i = 0; i < SIMFILE_DEFAULT_COLUMN_COUNT; i++) {
         sprite_t* button_sprite = rhythm_resources_get_sprite_for_button(&resources, loop->column_to_button_map[i]);

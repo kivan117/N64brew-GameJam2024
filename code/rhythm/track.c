@@ -8,7 +8,7 @@ void track_init(Track* track, int mixer_channel, const char* audio_file_asset, c
     wav64_open(&track->audio_file, audio_file_asset);
     simfile_open(&track->simfile, simfile_asset);
     simfile_playback_init(&track->playback, &track->simfile, event_lifetime);
-    debugf("track_init: %s\n", audio_file_asset);
+    //debugf("track_init: %s\n", audio_file_asset);
 }
 
 void track_start(Track* track) {

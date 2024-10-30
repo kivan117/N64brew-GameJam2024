@@ -47,7 +47,6 @@ void on_simfile_event(const SimfileEvent* event, void* arg) {
     for (int i = 0; i < SIMFILE_DEFAULT_COLUMN_COUNT; i++) {
         uint16_t mask = 1 << i;
         if (event->columns & mask) {
-            debugf("enqueue event to track: %i\n", i);
             event_track_add_item(&stream->tracks[i], time_remaining);
         }
     }

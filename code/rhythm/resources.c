@@ -11,9 +11,13 @@ void rhythm_resources_init(RhythmResources* resources) {
     resources->sprites[RHYTHM_SPRITE_BUTTON_Z] = sprite_load("rom:/core/ZTrigger.sprite");
     resources->sprites[RHYTHM_SPRITE_BUTTON_CR] = sprite_load("rom:/core/CRight.sprite");
     resources->sprites[RHYTHM_SPRITE_BUTTON_CL] = sprite_load("rom:/core/CLeft.sprite");
+    resources->sprites[RHYTHM_SPRITE_BUTTON_DU] = sprite_load("rom:/core/DUp.sprite");
+    resources->sprites[RHYTHM_SPRITE_BUTTON_DD] = sprite_load("rom:/core/DDown.sprite");
+    resources->sprites[RHYTHM_SPRITE_BUTTON_DL] = sprite_load("rom:/core/DLeft.sprite");
+    resources->sprites[RHYTHM_SPRITE_BUTTON_DR] = sprite_load("rom:/core/DRight.sprite");
 
     resources->fonts[RHYTHM_FONT_BUILTIN] = rdpq_font_load_builtin(FONT_BUILTIN_DEBUG_VAR);
-    resources->fonts[RHYTHM_FONT_SQUAREWAVE] = rdpq_font_load("rom:/squarewave.font64");
+    resources->fonts[RHYTHM_FONT_TITLE] = rdpq_font_load("rom:/snake3d/m6x11plus.font64");
 
     for (int i = 0; i < RHYTHM_FONT_COUNT; i++) {
         rdpq_text_register_font(i + 1, resources->fonts[i] );
@@ -29,6 +33,7 @@ void rhythm_resources_uninit(RhythmResources* resources) {
     // TODO: delete font?
     for (int i = 0; i < RHYTHM_FONT_COUNT; i++) {
         rdpq_text_unregister_font(i + 1);
+        rdpq_font_free(resources->fonts[i]);
     }
 }
 
@@ -41,6 +46,10 @@ sprite_t* rhythm_resources_get_sprite_for_button(RhythmResources* resouces, Simf
         case SIMFILE_INPUT_TRACKER_BUTTON_Z: return resouces->sprites[RHYTHM_SPRITE_BUTTON_Z];
         case SIMFILE_INPUT_TRACKER_BUTTON_C_LEFT: return resouces->sprites[RHYTHM_SPRITE_BUTTON_CL];
         case SIMFILE_INPUT_TRACKER_BUTTON_C_RIGHT: return resouces->sprites[RHYTHM_SPRITE_BUTTON_CR];
+        case SIMFILE_INPUT_TRACKER_BUTTON_DPAD_UP: return resouces->sprites[RHYTHM_SPRITE_BUTTON_DU];
+        case SIMFILE_INPUT_TRACKER_BUTTON_DPAD_DOWN: return resouces->sprites[RHYTHM_SPRITE_BUTTON_DD];
+        case SIMFILE_INPUT_TRACKER_BUTTON_DPAD_LEFT: return resouces->sprites[RHYTHM_SPRITE_BUTTON_DL];
+        case SIMFILE_INPUT_TRACKER_BUTTON_DPAD_RIGHT: return resouces->sprites[RHYTHM_SPRITE_BUTTON_DR];
         default: return NULL;
     }
 

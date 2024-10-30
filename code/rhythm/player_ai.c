@@ -33,7 +33,6 @@ static int player_ai_controller_get_button_pressed(int button, void* arg);
 static void reset_ai_event_schedule(PlayerAi* player);
 
 void player_ai_init(PlayerAi* player, AiDiff difficulty) {
-    debugf("player_ai_init: %i\n", (int)difficulty);
     SimfileInputTrackerInterface input_interface = {player_ai_controller_get_button_pressed, player};
     player_init(&player->base, PLAYER_TYPE_AI, &input_interface);
     player->base.input_tracker.debug_handle = PLAYER_TYPE_CONTROLLER;
@@ -98,21 +97,21 @@ void player_ai_update(PlayerAi* player) {
 
         if (x <= 0.0f) {
             player->next_button_press_time = current_event->time - tracker->time_windows[i];
-            debugf("AI(%i): queue press button (%i) at: %f\n", (int)player->difficulty, i, player->next_button_press_time);
+            //debugf("AI(%i): queue press button (%i) at: %f\n", (int)player->difficulty, i, player->next_button_press_time);
             return;
         }
     }
 
     // no event scheduled...the ai will miss this note
     player->next_button_press_time = PLAYER_AI_MISS_NEXT_EVENT;
-    debugf("AI(%i): queue miss event at: %f\n", (int)player->difficulty, player->next_button_press_time);
+    //debugf("AI(%i): queue miss event at: %f\n", (int)player->difficulty, player->next_button_press_time);
 }
 
 int player_ai_controller_get_button_pressed(int button, void* arg) {
     PlayerAi* player = (PlayerAi*)arg;
 
     if (player->base.input_tracker.playback->current_time > player->next_button_press_time) {
-        debugf("AI(%i): Press Button %i (t:%f)\n", (int)player->difficulty, button, player->base.input_tracker.playback->current_time);
+        //debugf("AI(%i): Press Button %i (t:%f)\n", (int)player->difficulty, button, player->base.input_tracker.playback->current_time);
         return 1;
     }
 
