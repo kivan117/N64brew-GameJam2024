@@ -12,6 +12,7 @@
 #include "players.h"
 #include "stats_overlay.h"
 #include "resources.h"
+#include "target_indicator.h"
 #include "track.h"
 
 #include <string.h>
@@ -32,6 +33,7 @@ Players players;
 StatsOverlay stats_overlay;
 EventStream event_stream;
 EventResults event_results;
+TargetIndicator target_indicator;
 
 #define LOOP_COUNT 4
 static const LoopInfo loops[LOOP_COUNT] = {
@@ -144,6 +146,7 @@ void minigame_loop(float deltatime)
     event_stream_update(&event_stream, deltatime);
     event_results_update(&event_results, deltatime);
     players_update(&players);
+    target_indicator_tick(&target_indicator, &track.playback.metronome);
     event_stream_draw(&event_stream);
     event_results_draw(&event_results);
     stats_overlay_draw(&stats_overlay);
@@ -185,9 +188,10 @@ void load_loop(int index) {
     event_stream_init(&event_stream, &track.playback);
     for (int i = 0; i < SIMFILE_DEFAULT_COLUMN_COUNT; i++) {
         sprite_t* button_sprite = rhythm_resources_get_sprite_for_button(&resources, loop->column_to_button_map[i]);
-        sprite_t* target_sprite = i == 0 ? resources.sprites[RHYTHM_SPRITE_INDICATOR] : (sprite_t*)NULL;
-        event_stream_create_track(&event_stream, &start_pos, &target_pos, button_sprite, target_sprite);
+        event_stream_create_track(&event_stream, &start_pos, &target_pos, button_sprite);
     }
+
+    target_indicator_init(&target_indicator, resources.sprites[RHYTHM_SPRITE_INDICATOR], &target_pos);
 
     current_loop = index;
 }

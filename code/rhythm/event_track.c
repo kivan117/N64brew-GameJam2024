@@ -3,11 +3,10 @@
 #include <math.h>
 
 
-void event_track_init(EventTrack* track, const Vec2* source_pos, const Vec2* target_pos, sprite_t* item_texture, sprite_t* target_texture, float lifetime) {
+void event_track_init(EventTrack* track, const Vec2* source_pos, const Vec2* target_pos, sprite_t* item_texture, float lifetime) {
     track->source_pos = *source_pos;
     track->target_pos = *target_pos;
     track->item_texture = item_texture;
-    track->target_texture = target_texture;
 
     // calclulate the normalized direction vector that all items in this track will move on.
     track->direction.x = target_pos->x - source_pos->x;
@@ -40,13 +39,6 @@ void event_track_update(EventTrack* track, float deltatime) {
 }
 
 void event_track_draw(EventTrack* track) {
-    if (track->target_texture) {
-        rdpq_sprite_blit(track->target_texture, 
-            track->target_pos.x - track->target_texture->width / 2, 
-            track->target_pos.y - track->target_texture->height / 2 , 
-            NULL);
-    }
-
     int current = track->head;
     while (current != track->tail) {
         EventTrackItem* current_item = &track->items[current];

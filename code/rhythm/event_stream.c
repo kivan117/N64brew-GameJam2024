@@ -12,12 +12,12 @@ void event_stream_init(EventStream* stream, SimfilePlayback* playback) {
 }
 
 /** Adds a new track into the stream. */
-void event_stream_create_track(EventStream* stream, const Vec2* source_pos, const Vec2* target_pos, sprite_t* item_texture, sprite_t* target_texture) {
+void event_stream_create_track(EventStream* stream, const Vec2* source_pos, const Vec2* target_pos, sprite_t* item_texture) {
     if (stream->track_count == SIMFILE_DEFAULT_COLUMN_COUNT) {
         return;
     }
 
-    event_track_init(&stream->tracks[stream->track_count++], source_pos, target_pos, item_texture, target_texture, stream->playback->event_lead_time);
+    event_track_init(&stream->tracks[stream->track_count++], source_pos, target_pos, item_texture, stream->playback->event_lead_time);
 }
 
 void event_stream_update(EventStream* stream, float time_delta) {

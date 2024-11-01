@@ -17,11 +17,10 @@ typedef struct {
     float speed, lifetime;
     EventTrackItem items[EVENT_TRACK_BUFFER_SIZE];
     int head, tail;
-    sprite_t* target_texture;
     sprite_t* item_texture;
 } EventTrack;
 
-void event_track_init(EventTrack* track, const Vec2* source_pos, const Vec2* target_pos, sprite_t* item_texture, sprite_t* target_texture, float lifetime);
+void event_track_init(EventTrack* track, const Vec2* source_pos, const Vec2* target_pos, sprite_t* item_texture, float lifetime);
 void event_track_update(EventTrack* track, float deltatime);
 void event_track_draw(EventTrack* track);
 void event_track_reset(EventTrack* track);

@@ -17,7 +17,7 @@ void simfile_init_debug(Simfile* simfile, float total_time, float starting_time_
     simfile->events = events;
 }
 
-#define SIMFILE_INFO_SIZE 12
+#define SIMFILE_INFO_SIZE 16
 
 int simfile_open(Simfile* simfile, const char* path) {
     simfile_uninit(simfile);

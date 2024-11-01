@@ -4,14 +4,15 @@ void simfile_playback_init(SimfilePlayback* playback, Simfile* simfile, float ev
     playback->event_lead_time = event_lead_time;
     playback->simfile = simfile;
     playback->callback_entry_count = 0;
-    simfile_playback_reset(playback);
 
     metronome_init(&playback->metronome, playback->simfile->bpm);
+    simfile_playback_reset(playback);
 }
 
 void simfile_playback_reset(SimfilePlayback* playback) {
     playback->current_time = playback->simfile->starting_time_offset;
     playback->next_event_index = 0;
+    metronome_reset(&playback->metronome);
 }
 
 void simfile_playback_push_callback(SimfilePlayback* playback, SimfilePlaybackEventCallbackFunc callback, void* arg) {
