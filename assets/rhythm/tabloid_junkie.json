@@ -1,6 +1,7 @@
 {
 	"duration": 3.0,
 	"time_offset": -0.7,
+	"bpm": 130.0,
 	"events": [
 		{
 			"time": 0.03,

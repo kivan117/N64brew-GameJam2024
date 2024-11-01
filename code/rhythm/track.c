@@ -29,7 +29,7 @@ void track_update(Track* track, float time) {
     simfile_playback_update(&track->playback, time);
 
     if (!simfile_playback_finished(&track->playback) && track->playback.current_time >= 0 && !mixer_ch_playing(track->mixer_channel)) {
-        track->playback.current_time = 0.0f; // sync the playback time with the start of the audio track
+        simfile_playback_sync(&track->playback);
         wav64_play(&track->audio_file, track->mixer_channel);
     }
 }

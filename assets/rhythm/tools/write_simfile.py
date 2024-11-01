@@ -28,7 +28,7 @@ endian = ">"
 
 with open(output_path, "wb") as output_file:
 	#write header
-	header_data = struct.pack('{}ffI'.format(endian), simfile["duration"], simfile["time_offset"], len(simfile["events"]))
+	header_data = struct.pack('{}fffI'.format(endian), simfile["duration"], simfile["bpm"], simfile["time_offset"], len(simfile["events"]))
 	output_file.write(header_data)
 
 	for event in simfile["events"]:

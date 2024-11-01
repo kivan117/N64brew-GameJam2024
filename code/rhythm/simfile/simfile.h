@@ -9,8 +9,11 @@ typedef struct {
     /** The total time of the simfile. */
     float total_time;
 
+    float bpm;
+
     /** defines an offset to the current time of a context that is evaluating this simfile. */
     float starting_time_offset;
+
     uint32_t event_count;
     SimfileEvent* events;
 } Simfile;

@@ -4,6 +4,7 @@
 
 typedef struct {
 	float duration;
+	float bpm;
 	float time_offset;
 	uint32_t event_count;
 } CompactSimfileHeader;
@@ -35,6 +36,7 @@ int main(int argc, char** argv) {
 
 	std::cout << "duration: " << csm_header.duration << std::endl;
 	std::cout << "time_offset: " << csm_header.time_offset << std::endl;
+	std::cout << "bpm: " << csm_header.bpm << std::endl;
 	std::cout << "event_count: " << csm_header.event_count << std::endl;
 
 	for (uint32_t i = 0; i < csm_header.event_count; i++) {
