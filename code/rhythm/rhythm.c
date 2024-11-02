@@ -10,6 +10,7 @@
 #include "event_results.h"
 #include "loop_info.h"
 #include "players.h"
+#include "pulse_sprite.h"
 #include "stats_overlay.h"
 #include "resources.h"
 #include "target_indicator.h"
@@ -34,6 +35,7 @@ StatsOverlay stats_overlay;
 EventStream event_stream;
 EventResults event_results;
 TargetIndicator target_indicator;
+PulseSprite pulse_sprite;
 
 #define LOOP_COUNT 4
 static const LoopInfo loops[LOOP_COUNT] = {
@@ -77,6 +79,9 @@ void minigame_init()
     players_init(&players);
     event_results_init(&event_results, &players, resources.fonts[RHYTHM_FONT_BUILTIN], rhythm_resources_get_font_id(&resources, RHYTHM_FONT_BUILTIN));
     stats_overlay_init(&stats_overlay, &players, resources.fonts[RHYTHM_FONT_BUILTIN], rhythm_resources_get_font_id(resources, RHYTHM_FONT_BUILTIN));
+
+    const Vec2 pulse_sprite_pos = {20.0f, 20.0f};
+    pulse_sprite_init(&pulse_sprite, resources.sprites[RHYTHM_SPRITE_PULSE_TEST], &pulse_sprite_pos);
     load_loop(0);
 }
 
@@ -146,7 +151,10 @@ void minigame_loop(float deltatime)
     event_stream_update(&event_stream, deltatime);
     event_results_update(&event_results, deltatime);
     players_update(&players);
-    target_indicator_tick(&target_indicator, &track.playback.metronome);
+    
+    rdpq_sprite_blit(target_indicator.sprite, target_indicator.position.x, target_indicator.position.y, NULL);
+    pulse_sprite_tick(&pulse_sprite, &track.playback.metronome);
+
     event_stream_draw(&event_stream);
     event_results_draw(&event_results);
     stats_overlay_draw(&stats_overlay);
@@ -191,7 +199,8 @@ void load_loop(int index) {
         event_stream_create_track(&event_stream, &start_pos, &target_pos, button_sprite);
     }
 
-    target_indicator_init(&target_indicator, resources.sprites[RHYTHM_SPRITE_INDICATOR], &target_pos);
+    target_indicator.sprite = resources.sprites[RHYTHM_SPRITE_INDICATOR];
+    target_indicator.position = target_pos;
 
     current_loop = index;
 }

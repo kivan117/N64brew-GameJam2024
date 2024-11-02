@@ -4,6 +4,7 @@ static void create_player_font_styles(rdpq_font_t* font);
 
 void rhythm_resources_init(RhythmResources* resources) {
     resources->sprites[RHYTHM_SPRITE_INDICATOR] = sprite_load("rom:/rhythm/indicator.sprite");
+    resources->sprites[RHYTHM_SPRITE_PULSE_TEST] = sprite_load("rom:/jam.rgba32.sprite");
     resources->sprites[RHYTHM_SPRITE_BUTTON_A] = sprite_load("rom:/core/AButton.sprite");
     resources->sprites[RHYTHM_SPRITE_BUTTON_B] = sprite_load("rom:/core/BButton.sprite");
     resources->sprites[RHYTHM_SPRITE_BUTTON_L] = sprite_load("rom:/core/LTrigger.sprite");
