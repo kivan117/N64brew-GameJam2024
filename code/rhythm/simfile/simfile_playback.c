@@ -5,14 +5,16 @@ void simfile_playback_init(SimfilePlayback* playback, Simfile* simfile, float ev
     playback->simfile = simfile;
     playback->callback_entry_count = 0;
 
-    metronome_init(&playback->metronome, playback->simfile->bpm);
+    playback->beat_time = 60.0f / simfile->bpm;
     simfile_playback_reset(playback);
 }
 
 void simfile_playback_reset(SimfilePlayback* playback) {
     playback->current_time = playback->simfile->starting_time_offset;
     playback->next_event_index = 0;
-    metronome_reset(&playback->metronome);
+    playback->time_to_next_beat = 0;
+    playback->beat_num = 0;
+    playback->current_beat_progress = 1.0f;
 }
 
 void simfile_playback_push_callback(SimfilePlayback* playback, SimfilePlaybackEventCallbackFunc callback, void* arg) {
@@ -33,7 +35,16 @@ void simfile_playback_update(SimfilePlayback* playback, float time) {
     }
 
     playback->current_time += time;
-    metronome_update(&playback->metronome, time);
+    if (playback->current_time >0) {
+        playback->time_to_next_beat -= time;
+
+        if (playback->time_to_next_beat <= 0.0f) {
+            playback->beat_num += 1;
+            playback->time_to_next_beat = playback->beat_time - playback->time_to_next_beat;
+        }
+
+        playback->current_beat_progress = playback->time_to_next_beat / playback->beat_time;
+    }
 
     // we have dispatched all remaining events nothing more to do
     if (playback->next_event_index >= playback->simfile->event_count) {
@@ -65,5 +76,4 @@ int simfile_playback_finished(SimfilePlayback* playback) {
 
 void simfile_playback_sync(SimfilePlayback* playback) {
     playback->current_time = 0;
-    playback->metronome.time_to_next_beat = playback->metronome.beat_time;
 }

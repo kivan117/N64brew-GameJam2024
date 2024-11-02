@@ -1,7 +1,6 @@
 #pragma once
 
 #include "simfile.h"
-#include "metronome.h"
 
 typedef void(*SimfilePlaybackEventCallbackFunc)(const SimfileEvent* event, void* arg);
 #define SIMFILE_PLAYBACK_MAX_CALLBACKS_COUNT 16
@@ -17,12 +16,23 @@ typedef struct {
  * */
 typedef struct {
     Simfile* simfile;
-    Metronome metronome;
     float current_time;
     float event_lead_time;
     size_t next_event_index;
     SimfilePlaybackEventCallbackEntry callback_entries[SIMFILE_PLAYBACK_MAX_CALLBACKS_COUNT];
     size_t callback_entry_count;
+
+    /** Counts the number of beats that have ticked since the last call to init / reset */
+    uint32_t beat_num;
+
+    /** The time between each beat*/
+    float beat_time;
+
+    /** The number of seconds to the next beat */
+    float time_to_next_beat;
+
+    /** The progress in the current beat */
+    float current_beat_progress;
 } SimfilePlayback;
 
 void simfile_playback_init(SimfilePlayback* playback, Simfile* simfile, float event_lead_time);

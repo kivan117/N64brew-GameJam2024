@@ -152,8 +152,10 @@ void minigame_loop(float deltatime)
     event_results_update(&event_results, deltatime);
     players_update(&players);
     
-    rdpq_sprite_blit(target_indicator.sprite, target_indicator.position.x, target_indicator.position.y, NULL);
-    pulse_sprite_tick(&pulse_sprite, &track.playback.metronome);
+    rdpq_sprite_blit(target_indicator.sprite, 
+        target_indicator.position.x - target_indicator.sprite->width / 2, 
+        target_indicator.position.y - target_indicator.sprite->height / 2, NULL);
+    pulse_sprite_tick(&pulse_sprite, &track.playback);
 
     event_stream_draw(&event_stream);
     event_results_draw(&event_results);
