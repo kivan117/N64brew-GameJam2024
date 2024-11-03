@@ -1,4 +1,8 @@
 #include <libdragon.h>
+
+#include <t3d/t3d.h>
+#include <t3d/t3dmodel.h>
+
 #include "../../core.h"
 #include "../../minigame.h"
 
@@ -25,7 +29,8 @@ const MinigameDef minigame_def = {
     .instructions = "Press A to win."
 };
 
-#define GAME_BACKGROUND     0x000000FF
+// #define GAME_BACKGROUND     0x000000FF
+#define GAME_BACKGROUND 0xF7F7E5FF
 static uint32_t background_color = GAME_BACKGROUND;
 
 RhythmResources resources;
@@ -36,6 +41,12 @@ EventStream event_stream;
 EventResults event_results;
 TargetIndicator target_indicator;
 PulseSprite pulse_sprite;
+
+
+//t3d stuff
+T3DViewport viewport;
+T3DModel* hand_model;
+T3DMat4FP* model_matrix;
 
 #define LOOP_COUNT 4
 static const LoopInfo loops[LOOP_COUNT] = {
@@ -83,6 +94,24 @@ void minigame_init()
     const Vec2 pulse_sprite_pos = {20.0f, 20.0f};
     pulse_sprite_init(&pulse_sprite, resources.sprites[RHYTHM_SPRITE_PULSE_TEST], &pulse_sprite_pos);
     load_loop(0);
+
+    // tiny3d setup?
+    t3d_init((T3DInitParams){});
+    viewport = t3d_viewport_create();
+    t3d_viewport_set_projection(&viewport, T3D_DEG_TO_RAD(90.0f), 2.0f, 80.0f);
+
+    T3DVec3 cam_pos = {{4.0f, 40.0f, 20.0f}};
+    T3DVec3 cam_target = {{4.0f, 20.0f, 00.f}};
+    t3d_viewport_look_at(&viewport, &cam_pos, &cam_target, &(T3DVec3){{0,1,0}});
+    hand_model = t3d_model_load("rom:/rhythm/arm_point.t3dm");
+    if (!hand_model) {
+        background_color = 0xFF0000FF;
+    }
+
+    debugf("model aabb: [%i, %i, %i] [%i, %i, %i]\n", hand_model->aabbMin[0],hand_model->aabbMin[1], hand_model->aabbMin[2], hand_model->aabbMax[0], hand_model->aabbMax[1], hand_model->aabbMax[2]);
+
+    model_matrix = malloc_uncached(sizeof(T3DMat4FP));
+    t3d_mat4fp_from_srt_euler(model_matrix, (float[3]){0.1f, 0.1f, 0.1f}, (float[3]){0, 0, 0}, (float[3]){0, 0, 0});
 }
 
 /*==============================
@@ -104,8 +133,30 @@ void minigame_fixedloop(float deltatime)
 ==============================*/
 void minigame_loop(float deltatime)
 {
-    rdpq_attach(display_get(), NULL);
-    rdpq_clear(color_from_packed32(background_color));
+    // draw 3d scene
+    rdpq_attach(display_get(), display_get_zbuf());
+    t3d_frame_start();
+    t3d_viewport_attach(&viewport);
+
+    t3d_screen_clear_color(color_from_packed32(background_color));
+    t3d_screen_clear_depth();
+
+      uint8_t colorAmbient[4] = {0xAA, 0xAA, 0xAA, 0xFF};
+    uint8_t colorDir[4]     = {0xFF, 0xAA, 0xAA, 0xFF};
+    T3DVec3 lightDirVec = (T3DVec3){{1.0f, 1.0f, 1.0f}};
+      t3d_vec3_norm(&lightDirVec);
+
+    t3d_light_set_ambient(colorAmbient);
+    t3d_light_set_directional(0, colorDir, &lightDirVec);
+    t3d_light_set_count(1);
+
+    t3d_matrix_push(model_matrix);
+    rdpq_set_prim_color(RGBA32(255, 255, 255, 255));
+    t3d_model_draw(hand_model);
+    t3d_matrix_pop(1);
+
+    rdpq_sync_tile();
+    rdpq_sync_pipe(); // Hardware crashes otherwise ?
 
     rdpq_set_mode_standard();
     rdpq_mode_alphacompare(1);

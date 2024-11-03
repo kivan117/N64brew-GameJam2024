@@ -7,7 +7,10 @@ ASSETS_LIST += \
 	filesystem/rhythm/breaking_news.wav64 \
 	filesystem/rhythm/breaking_news.csm \
 	filesystem/rhythm/screenbreaker.wav64 \
-	filesystem/rhythm/screenbreaker.csm
+	filesystem/rhythm/screenbreaker.csm \
+	filesystem/rhythm/arm_point.t3dm \
+	filesystem/rhythm/Hand.sprite \
+	filesystem/rhythm/BlackSuit.sprite
 
 
 $(FILESYSTEM_DIR)/%.csm: $(ASSETS_DIR)/%.csm
